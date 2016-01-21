@@ -1,5 +1,7 @@
 import java.awt.Color;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
@@ -10,7 +12,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Scanner;
 
-import javax.swing.JRadioButton;
+import javax.swing.JButton;
+import javax.swing.JOptionPane;
 
 import acm.graphics.GImage;
 import acm.graphics.GLabel;
@@ -28,25 +31,50 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private int leftCount;
 	private int totalTimeSteps;
 	private double totalInnacuracy;
+	private int counter = 0;
 	private GRect automationRecommendation;
 	private ArrayList<GImage> noEnemyImages;
 	private ArrayList<GImage> yesEnemyImages;
 	private ArrayList<GImage> imagesToUse;
 	public ArrayList<Entry> entries;
+	private GLabel trialNumber;
 	private int selectorPosition = 4;
 	private boolean noEnemy;
 	private boolean automationCorrect;
 	private Physics p;
+	private double reliability; //important!!!
+	private boolean isBinaryAlarm; //important!!!
+	private boolean running = false;
+	private JButton toPractice;
+	private boolean inPracticeMode = true;
+	private ArrayList<String> practiceText = new ArrayList<String>();
 	
 	public static void main (String[] args) {
 		new Tracker().start();
 	}
 	
 	public void init () {
+		try {
+			Scanner fin = new Scanner(new BufferedReader(new FileReader("practiceText")));
+			while (fin.hasNextLine()) {
+				practiceText.add(fin.nextLine());
+			}
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		String[] stringForm = new String[TrackerConstants.AUTOMATION_CORRECT_PERCENTAGES.length];
+		for (int i = 0; i < stringForm.length; i++) {
+			stringForm[i] = Double.toString((int)(TrackerConstants.AUTOMATION_CORRECT_PERCENTAGES[i] * 100));
+		}
+		reliability = Double.parseDouble((String)JOptionPane.showInputDialog(this, "Reliability:", "Setup", JOptionPane.PLAIN_MESSAGE, null, stringForm, null));
+		String[] alarmTypeOptions = new String[] {"Binary alarm", "Likelihood alarm"};
+		isBinaryAlarm = ((String)JOptionPane.showInputDialog(this, "Alarm type:", "Setup", JOptionPane.PLAIN_MESSAGE, null, alarmTypeOptions, null)).equals(alarmTypeOptions[0]);
 		initScreen();
 	}
 	
 	private void initMainScreen () {
+		this.removeAll();
 		entries = new ArrayList<Entry>();
 		
 		automationRecommendation = new GRect(TrackerConstants.SCREEN_DIVISION_X + (APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X) / 2 + TrackerConstants.RECOMMENDER_BUFFER, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM + TrackerConstants.RECOMMENDER_BUFFER, (APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X) / 2 - TrackerConstants.RECOMMENDER_BUFFER * 2, TrackerConstants.TRACKER_AREA_BOTTOM - TrackerConstants.RECOMMENDER_BUFFER * 2);
@@ -81,11 +109,42 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		p = new Physics();
 		p.cursorX = cursor.getX();
 		p.cursorY = cursor.getY();
+		
+		trialNumber = new GLabel("Trial: " + counter + "/" + TrackerConstants.TRIAL_COUNT);
+		if (inPracticeMode) {
+			trialNumber.setLabel(practiceText.get(0));
+		}
+		trialNumber.setFont(new Font("Arial", Font.PLAIN, 24));
+		trialNumber.setLocation(TrackerConstants.RECOMMENDER_BUFFER, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM + TrackerConstants.RECOMMENDER_BUFFER);
+		add(trialNumber);
+		running = true;
 	}
 	
 	private void initScreen () {
-		JRadioButton accuracy60 = new JRadioButton("60");
-		add(accuracy60, 60, 60);
+		try {
+			Scanner fin = new Scanner(new BufferedReader(new FileReader("initScreenText")));
+			GLabel temp;
+			for (int i = 0; fin.hasNextLine(); i++) {
+				temp = new GLabel(fin.nextLine());
+				temp.setFont(new Font("Arial", Font.PLAIN, 24));
+				temp.setLocation(TrackerConstants.INIT_SCREEN_BUFFER, i * TrackerConstants.LINE_HEIGHT + TrackerConstants.INIT_SCREEN_BUFFER);
+				add(temp);
+			}
+			fin.close();
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		toPractice = new JButton("Practice");
+		this.add(toPractice, TrackerConstants.INIT_SCREEN_BUFFER, 8 * TrackerConstants.LINE_HEIGHT + TrackerConstants.INIT_SCREEN_BUFFER);
+	}
+	
+	private void practice () {
+		this.removeAll();
+		initMainScreen();
+		inPracticeMode = true;
+		//runMainScreen();
 	}
 	
 	private void addTooltip () {
@@ -211,7 +270,23 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 			moveSelectorDirection(3);*/
 	}
 	
-	private void runMainScreen () {
+	private void incrementTrialNumber () {
+		counter++;
+		if (inPracticeMode) {
+			trialNumber.setLabel(practiceText.get(counter));
+		}
+		else {
+			trialNumber.setLabel("Trial " + counter + "/" + TrackerConstants.TRIAL_COUNT);
+		}
+	}
+	
+	public void run () {
+		toPractice.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				practice();
+			}
+		});
 		/*final GazeManager gm = GazeManager.getInstance();
         boolean success = gm.activate(ApiVersion.VERSION_1_0, ClientMode.PUSH);
         final IGazeListener listener = new IGazeListener () {
@@ -235,39 +310,44 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
             }
         });*/
 		double startTime = System.currentTimeMillis();	
-		addMouseListeners();
-		addKeyListeners();
 		double lastTime = System.currentTimeMillis();
 		double currentTime;
 		double lastAngle = 0;
 		double seed = Math.random();
 		Tuple move;
+		int nothing;
+		boolean initialized = false;
 		while (true) {
-			timer.setLabel("Time left: " + Double.toString((TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime)) / 1000d));
-			if (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime) <= 0) {
-				addEntry();
-				putRandomImages();
-				startTime = System.currentTimeMillis();
+			System.out.print(running?"":""); //it is unclear why this is required, but something needs to check the running variable
+			if (running) {
+				if (!initialized) {
+					initialized = true;
+					addMouseListeners();
+					addKeyListeners();
+				}
+				timer.setLabel("Time left: " + Double.toString((TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime)) / 1000d));
+				if (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime) <= 0) {
+					addEntry();
+					incrementTrialNumber();
+					putRandomImages();
+					startTime = System.currentTimeMillis();
+				}
+				if (System.currentTimeMillis() % 1000 == 0)
+					seed = Math.random();
+				if (System.currentTimeMillis() % 10 == 0) {
+					p.cursorX = cursor.getX();
+					p.cursorY = cursor.getY();
+					move = p.computeMove();
+					cursor.move(move.x, move.y);
+					currentTime = System.currentTimeMillis() / 200d / Math.PI;
+					cursor.movePolar((Math.sin(currentTime) - Math.sin(lastTime)) * 40, lastAngle);
+					lastTime = System.currentTimeMillis() / 200d / Math.PI;
+					lastAngle += seed / 1500d;
+					if (cursor.getX() + cursor.getWidth() < TrackerConstants.SCREEN_DIVISION_X && cursor.isVisible()) cursor.setVisible(false);
+					if (cursor.getX() + cursor.getWidth() > TrackerConstants.SCREEN_DIVISION_X && !cursor.isVisible()) cursor.setVisible(true);
+				}	
 			}
-			if (System.currentTimeMillis() % 1000 == 0)
-				seed = Math.random();
-			if (System.currentTimeMillis() % 10 == 0) {
-				p.cursorX = cursor.getX();
-				p.cursorY = cursor.getY();
-				move = p.computeMove();
-				cursor.move(move.x, move.y);
-				currentTime = System.currentTimeMillis() / 200d / Math.PI;
-				cursor.movePolar((Math.sin(currentTime) - Math.sin(lastTime)) * 40, lastAngle);
-				lastTime = System.currentTimeMillis() / 200d / Math.PI;
-				lastAngle += seed / 1500d;
-				if (cursor.getX() + cursor.getWidth() < TrackerConstants.SCREEN_DIVISION_X && cursor.isVisible()) cursor.setVisible(false);
-				if (cursor.getX() + cursor.getWidth() > TrackerConstants.SCREEN_DIVISION_X && !cursor.isVisible()) cursor.setVisible(true);
-			}	
 		}
-	}
-	
-	public void run () {
-		
 	}
 }
 

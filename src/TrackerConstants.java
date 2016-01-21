@@ -2,7 +2,11 @@
 public class TrackerConstants {
 	public static final double NO_ENEMY_PROPORTION = 0.4;
 	public static final double AUTOMATION_CORRECT_PERCENTAGE = 0.7;
+	
+	public static final double[] AUTOMATION_CORRECT_PERCENTAGES = new double[] {0.6, 0.7, 0.8, 0.9};
+	
 	public static final double TRIAL_LENGTH_MS = 10000;
+	public static final int TRIAL_COUNT = 200;
 	
 	public static final int SCREEN_DIVISION_X = 1000;
 	public static final int TRACKER_AREA_BOTTOM = 200;
@@ -14,6 +18,7 @@ public class TrackerConstants {
 	public static final int IMAGE_HEIGHT = 250;
 	public static final int RECOMMENDER_BUFFER = 50;
 	public static final int LINE_HEIGHT = 30;
+	public static final int INIT_SCREEN_BUFFER = 100;
 	/*public static final int BOTTOM_SELECTOR_WIDTH = 160;
 	public static final int BOTTOM_SELECTOR_HEIGHT = 80;
 	public static final int NO_ENEMY_OPTION_Y_POS = 720;
