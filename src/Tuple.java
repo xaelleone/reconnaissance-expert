@@ -19,4 +19,12 @@ public class Tuple {
 	public Tuple add (Tuple other) {
 		return new Tuple (x + other.x, y + other.y);
 	}
+	
+	public double distance (Tuple other) {
+		return Math.sqrt(Math.pow(x - other.x, 2) + Math.pow(y - other.y, 2));
+	}
+	
+	public String toString () {
+		return "(" + x + ", " + y + ")";
+	}
 }

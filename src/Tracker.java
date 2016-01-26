@@ -10,6 +10,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Scanner;
 
 import javax.swing.JButton;
@@ -20,6 +21,8 @@ import acm.graphics.GLabel;
 import acm.graphics.GOval;
 import acm.graphics.GRect;
 import acm.program.GraphicsProgram;
+import net.java.games.input.Controller;
+import net.java.games.input.ControllerEnvironment;
 
 public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	public static final int APPLICATION_HEIGHT = 800;
@@ -48,6 +51,11 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private JButton toPractice;
 	private boolean inPracticeMode = true;
 	private ArrayList<String> practiceText = new ArrayList<String>();
+	private ArrayList<ArrayList<GImage>> practiceImages = new ArrayList<ArrayList<GImage>>();
+	private GLabel otherPracticeTip;
+	private Tuple mousePos;
+	private Controller joystick;
+	private ArrayList<Trial> allTrials;
 	
 	public static void main (String[] args) {
 		new Tracker().start();
@@ -59,10 +67,13 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 			while (fin.hasNextLine()) {
 				practiceText.add(fin.nextLine());
 			}
+			fin.close();
+			loadPracticeImages();
 		}
 		catch (IOException e) {
 			e.printStackTrace();
 		}
+		initializeControllers();
 		String[] stringForm = new String[TrackerConstants.AUTOMATION_CORRECT_PERCENTAGES.length];
 		for (int i = 0; i < stringForm.length; i++) {
 			stringForm[i] = Double.toString((int)(TrackerConstants.AUTOMATION_CORRECT_PERCENTAGES[i] * 100));
@@ -93,7 +104,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		
 		addTarget();
 		
-		cursor = new GOval (1250, 250, TrackerConstants.CURSOR_SIZE, TrackerConstants.CURSOR_SIZE);
+		cursor = new GOval (targetInline.getX(), targetInline.getY(), TrackerConstants.CURSOR_SIZE, TrackerConstants.CURSOR_SIZE);
 		cursor.setFilled(true);
 		cursor.setColor(Color.WHITE);
 		add(cursor);
@@ -107,16 +118,28 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		addTooltip();
 		
 		p = new Physics();
-		p.cursorX = cursor.getX();
-		p.cursorY = cursor.getY();
 		
+		addTrialLabels();
+	}
+	
+	private void initializeControllers() {
+		ControllerEnvironment ce = ControllerEnvironment.getDefaultEnvironment(); 
+		Controller[] cs = ce.getControllers();
+		joystick = cs[3]; //SUBJECT 
+	}
+	
+	private void addTrialLabels () {
 		trialNumber = new GLabel("Trial: " + counter + "/" + TrackerConstants.TRIAL_COUNT);
 		if (inPracticeMode) {
 			trialNumber.setLabel(practiceText.get(0));
 		}
 		trialNumber.setFont(new Font("Arial", Font.PLAIN, 24));
 		trialNumber.setLocation(TrackerConstants.RECOMMENDER_BUFFER, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM + TrackerConstants.RECOMMENDER_BUFFER);
+		otherPracticeTip = new GLabel("");
+		otherPracticeTip.setFont(new Font("Arial", Font.PLAIN, 24));
+		otherPracticeTip.setLocation(TrackerConstants.RECOMMENDER_BUFFER, TrackerConstants.LINE_HEIGHT + APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM + TrackerConstants.RECOMMENDER_BUFFER);
 		add(trialNumber);
+		add(otherPracticeTip);
 		running = true;
 	}
 	
@@ -176,10 +199,36 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		selector.sendToBack();
 	}*/
 	
+	private void loadPracticeImages () throws IOException {
+		Scanner fin = new Scanner(new BufferedReader(new FileReader("practiceImageSets.txt")));
+		ArrayList<GImage> temp;
+		String[] splitted;
+		while (fin.hasNextLine()) {
+			temp = new ArrayList<GImage>();
+			splitted = fin.nextLine().split(" ");
+			for (String s : splitted) {
+				temp.add(new GImage("Picture for practice/" + s + ".png"));
+			}
+			practiceImages.add(temp);
+		}
+		fin.close();
+	}
+	
+	private void getPracticeImages () {
+		imagesToUse = new ArrayList<GImage>(practiceImages.get(counter));
+		Collections.shuffle(imagesToUse);
+		addImagesToCanvas();
+		automationRecommendation.setColor((counter == 3 || counter == 5) ? Color.RED : Color.GREEN);
+	}
+	
 	private void putRandomImages () {
 		//TODO: precompute all image sets so that proportions are complied with
 		for (GImage im : imagesToUse) {
 			this.remove(im);
+		}
+		if (inPracticeMode) {
+			getPracticeImages();
+			return;
 		}
 		imagesToUse = new ArrayList<GImage>();
 		noEnemy = (Math.random() < TrackerConstants.NO_ENEMY_PROPORTION);
@@ -195,12 +244,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
         if (!noEnemy) {
         	imagesToUse.add((int)(Math.random() * 4), yesEnemyImages.get((int)(Math.random() * yesEnemyImages.size())));
         }
-        for (int i = 0; i < imagesToUse.size(); i++) {
-        	imagesToUse.get(i).setLocation(TrackerConstants.IMAGE_POSITIONS[i][0], TrackerConstants.IMAGE_POSITIONS[i][1]);
-        	imagesToUse.get(i).setSize(TrackerConstants.IMAGE_WIDTH, TrackerConstants.IMAGE_HEIGHT);
-        	this.add(imagesToUse.get(i));
-        }
-        
+        addImagesToCanvas();
         automationCorrect = (Math.random() < TrackerConstants.AUTOMATION_CORRECT_PERCENTAGE);
         if (Entry.xnor(automationCorrect, noEnemy)) {
         	automationRecommendation.setColor(Color.GREEN);
@@ -210,29 +254,16 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
         }
 	}
 	
+	private void addImagesToCanvas () {
+		for (int i = 0; i < imagesToUse.size(); i++) {
+        	imagesToUse.get(i).setLocation(TrackerConstants.IMAGE_POSITIONS[i][0], TrackerConstants.IMAGE_POSITIONS[i][1]);
+        	imagesToUse.get(i).setSize(TrackerConstants.IMAGE_WIDTH, TrackerConstants.IMAGE_HEIGHT);
+        	this.add(imagesToUse.get(i));
+        }
+	}
+	
 	private void loadImages () {
-		try {
-			noEnemyImages = new ArrayList<GImage>();
-			yesEnemyImages = new ArrayList<GImage>();
-			Scanner fin = new Scanner(new BufferedReader(new FileReader("fileList.txt")));
-			String fileName;
-			GImage temp;
-			while (fin.hasNext()) {
-				fileName = fin.next();
-				temp = new GImage(fileName);
-				if (Character.isAlphabetic(fileName.charAt(fileName.length() - 5))) {
-					yesEnemyImages.add(temp);
-				}
-				else {
-					noEnemyImages.add(temp);
-				}
-			}
-			fin.close();
-		}
-		catch (IOException e) {
-			e.printStackTrace();
-		}
-		
+		allTrials = new ImageSetGenerator(isBinaryAlarm, reliability).getImages();
 	}
 	
 	private void addEntry () {
@@ -251,8 +282,14 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	public void mouseMoved (MouseEvent e) {
-		p.mouseX = e.getX();
-		p.mouseY = e.getY();
+		if (mousePos != null) {
+			p.mouseDiff = new Tuple(e.getX() - mousePos.x, e.getY() - mousePos.y);
+		}
+		mousePos = new Tuple(e.getX(), e.getY());
+	}
+	
+	private void moveJoystick (double x, double y) {
+		p.mouseDiff = (new Tuple(x, y)).scalarMultiple(TrackerConstants.JOYSTICK_SENSITIVITY);
 	}
 	
 	public void keyPressed (KeyEvent e) {
@@ -272,11 +309,14 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	
 	private void incrementTrialNumber () {
 		counter++;
+		if (counter >= 8)
 		if (inPracticeMode) {
-			trialNumber.setLabel(practiceText.get(counter));
+			trialNumber.setLabel(practiceText.get(counter * 2));
+			otherPracticeTip.setLabel(practiceText.get(counter * 2 + 1));
 		}
 		else {
 			trialNumber.setLabel("Trial " + counter + "/" + TrackerConstants.TRIAL_COUNT);
+			otherPracticeTip.setLabel("");
 		}
 	}
 	
@@ -315,7 +355,6 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		double lastAngle = 0;
 		double seed = Math.random();
 		Tuple move;
-		int nothing;
 		boolean initialized = false;
 		while (true) {
 			System.out.print(running?"":""); //it is unclear why this is required, but something needs to check the running variable
@@ -332,17 +371,17 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 					putRandomImages();
 					startTime = System.currentTimeMillis();
 				}
-				if (System.currentTimeMillis() % 1000 == 0)
-					seed = Math.random();
-				if (System.currentTimeMillis() % 10 == 0) {
-					p.cursorX = cursor.getX();
-					p.cursorY = cursor.getY();
+				/*if (System.currentTimeMillis() % 1000 == 0)
+					seed = Math.random();*/
+				if (System.currentTimeMillis() % 25 == 0) {
+					joystick.poll();
+					moveJoystick(joystick.getComponents()[12].getPollData(), joystick.getComponents()[13].getPollData());
 					move = p.computeMove();
 					cursor.move(move.x, move.y);
-					currentTime = System.currentTimeMillis() / 200d / Math.PI;
+					/*currentTime = System.currentTimeMillis() / 200d / Math.PI;
 					cursor.movePolar((Math.sin(currentTime) - Math.sin(lastTime)) * 40, lastAngle);
 					lastTime = System.currentTimeMillis() / 200d / Math.PI;
-					lastAngle += seed / 1500d;
+					lastAngle += seed / 1500d;*/
 					if (cursor.getX() + cursor.getWidth() < TrackerConstants.SCREEN_DIVISION_X && cursor.isVisible()) cursor.setVisible(false);
 					if (cursor.getX() + cursor.getWidth() > TrackerConstants.SCREEN_DIVISION_X && !cursor.isVisible()) cursor.setVisible(true);
 				}	

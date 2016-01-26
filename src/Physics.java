@@ -1,63 +1,100 @@
 public class Physics {
-	public static final double SCALE = 0.002;
-	public static final double FRICTION = 0;
-	public static final double SPRING_K = 1;
-	public static final double MASS = 10;
+	public static final double C_X = (1 + Math.sqrt(5)) / 2;
+	public static final double C_Y = Math.PI / 2;
+	public static final double DR = TrackerConstants.CURSOR_SIZE / 2;
+	public static final int N_MAX = 5;
+	public static final double MOUSE_PROPORTION = 0.11;
+	public static final double A1 = 0.957;
+	public static final double A2 = 0.0000003;
+	public static final double A3 = 0.000010382;
+	public static final double A4 = 0.0012288; // these were arbitrarily changed from the paper
+	public static final double TIME_STEP = 1000;
 	public static final double ORIGIN_X = TrackerConstants.SCREEN_DIVISION_X + (Tracker.APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X) / 2;
-	public static final double ORIGIN_Y = Tracker.APPLICATION_HEIGHT / 2;
+	public static final double ORIGIN_Y = (Tracker.APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM) / 2;
+	public static final Tuple ORIGIN = new Tuple(ORIGIN_X, ORIGIN_Y);
 	
-	private double lastTimeStep;
-	/*private double lastX;
-	private double lastY;
-	private double lastVx;
-	private double lastVy;*/
-	private double delT;
-	public double mouseX;
-	public double mouseY;
-	public double cursorX;
-	public double cursorY;
+	private double[] phaseAngles = new double[N_MAX + 1];
+	public Tuple cursorPrev = new Tuple(0, 0);
+	public Tuple cursor = new Tuple(0, 0);
+	public Tuple mouseDiff = new Tuple(0, 0);
 	
 	public Physics () {
-		lastTimeStep = System.currentTimeMillis();
-		/*lastX = x;
-		lastY = y;
-		lastVx = lastVy = 0;*/
+		calculatePhaseAngles();
 	}
 	
-	public Tuple computeMove () { // computes how far to move, not where to move
-		Tuple fMouse = new Tuple(mouseX - cursorX, mouseY - cursorY).scalarMultiple(SCALE);
-		//Tuple fFric = computeFriction();
-		//Tuple fSpring = computeSpringForce().scalarMultiple(SCALE);
+	public Tuple computeMove () {
+		Tuple nextPosition = cursor.add(cursorPrev.scalarMultiple(-1)).scalarMultiple(A1)
+				.add(cursorPrev.scalarMultiple(A2))
+				//.add(gravityForce().scalarMultiple(A3))
+				.add(buffetForce().add(mouseForce()).scalarMultiple(A4));
+		
+		moveCursor(nextPosition.x, nextPosition.y);
+		/*System.out.println(cursor);
+		System.out.println(cursorPrev);
+		System.out.println("next: " + nextPosition.x + ", " + nextPosition.y);*/
+		return nextPosition;
+	}
+	
+	public void setCursor (double x, double y) {
+		cursorPrev = new Tuple(cursor.x / DR, cursor.y / DR);
+		cursor = new Tuple(x, y);
+	}
+	
+	private void moveCursor (double x, double y) {
+		cursorPrev = new Tuple(cursor.x, cursor.y);
+		cursor = new Tuple(cursor.x + x, cursor.y + y);
+	}
+	
+	private Tuple buffetForce () {
+		Tuple force = new Tuple(0, 0);
+		double fbx, fby;
+		for (int i = 0; i <= N_MAX; i++) {
+			fbx = Math.pow(C_X, -1 * i) * Math.cos(phaseAngles[i] + Math.pow(C_X, i) * System.currentTimeMillis() / TIME_STEP);
+			fby = Math.pow(C_Y, -1 * i) * Math.cos(phaseAngles[i] + Math.pow(C_Y, i) * System.currentTimeMillis() / TIME_STEP);
+			force = force.add(new Tuple(fbx, fby));
+		}
+		//System.out.println("Buffet force: " + force.x + ", " + force.y);
+		return force;
+	}
+	
+	private Tuple gravityForce () {
+		double magnitude;
+		double distanceToOrigin = cursor.distance(new Tuple(0, 0));
+		if (distanceToOrigin <= 6) {
+			magnitude = Math.pow(distanceToOrigin, 2) / 2;
+		}
+		else {
+			magnitude = -3 * (distanceToOrigin - 20) / 2;
+		}
+		Tuple force;
+		if (distanceToOrigin == 0) {
+			force = new Tuple(0, 0);
+		}
+		else {
+			force = cursor.scalarMultiple(magnitude / distanceToOrigin);
+		}
+		//System.out.println("Gravity force: " + force.x + ", " + force.y);
+		return force;
+	}
+	
+	private Tuple mouseForce () {
+		return mouseDiff.scalarMultiple(MOUSE_PROPORTION);
+	}
+	
+	private void calculatePhaseAngles () {
+		for (int i = 0; i <= N_MAX; i++) {
+			phaseAngles[i] = Math.random() * Math.PI * 2;
+		}
+	}
+}
+	/*
+	 * old code:
+	 * Tuple fMouse = new Tuple(mouseX - cursorX, mouseY - cursorY).scalarMultiple(SCALE);
 		delT = System.currentTimeMillis() - lastTimeStep;
 		lastTimeStep = System.currentTimeMillis();
-		Tuple change = fMouse./*add(fSpring).*/scalarMultiple(Math.pow(delT, 2) / MASS);
+		Tuple change = fMouse.scalarMultiple(Math.pow(delT, 2) / MASS);
 		cursorX += change.x;
 		cursorY += change.y;
 		return change;
-	}
+	 */
 	
-	private Tuple computeSpringForce () {
-		return new Tuple(cursorX - ORIGIN_X, cursorY - ORIGIN_Y).scalarMultiple(0.1);
-	}
-	
-	private Tuple computeMouseForce (double nextX, double nextY) {
-		/*delT = System.currentTimeMillis() - lastTimeStep;
-		lastTimeStep = System.currentTimeMillis();
-		double nextVx = (nextX - lastX) / delT;
-		double nextVy = (nextX - lastY) / delT;
-		double aX = (nextVx - lastVx) / delT;
-		double aY = (nextVy - lastVy) / delT;
-		lastX = nextX;
-		lastY = nextY;
-		lastVx = nextVx;
-		lastVy = nextVy;
-		System.out.println(aX + " " + aY);
-		return new Tuple(MASS * aX, MASS * aY);*/
-		return null;
-	}
-	
-	/*private Tuple computeFriction () {
-		Tuple vTuple = new Tuple(lastVx, lastVy);
-		return vTuple.scalarMultiple(-1 * FRICTION / vTuple.innerProduct());
-	}*/
-}

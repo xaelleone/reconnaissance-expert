@@ -8,6 +8,10 @@ public class TrackerConstants {
 	public static final double TRIAL_LENGTH_MS = 10000;
 	public static final int TRIAL_COUNT = 200;
 	
+	public static final int EFFECTIVE_PRACTICE_TRIAL_COUNT = 8;
+	
+	public static final int JOYSTICK_SENSITIVITY = 50;
+	
 	public static final int SCREEN_DIVISION_X = 1000;
 	public static final int TRACKER_AREA_BOTTOM = 200;
 	public static final int CURSOR_SIZE = 20;
