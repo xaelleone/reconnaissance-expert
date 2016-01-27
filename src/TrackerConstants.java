@@ -3,7 +3,7 @@ public class TrackerConstants {
 	public static final double NO_ENEMY_PROPORTION = 0.4;
 	public static final double AUTOMATION_CORRECT_PERCENTAGE = 0.7;
 	
-	public static final double[] AUTOMATION_CORRECT_PERCENTAGES = new double[] {0.6, 0.7, 0.8, 0.9};
+	public static final double[] AUTOMATION_CORRECT_PERCENTAGES = new double[] {0.7, 0.8, 0.9};
 	
 	public static final double TRIAL_LENGTH_MS = 10000;
 	public static final int TRIAL_COUNT = 200;

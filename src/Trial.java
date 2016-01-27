@@ -1,18 +1,18 @@
+import java.applet.AudioClip;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import acm.graphics.GImage;
-
 public class Trial {
 	public static final int NUM_PICTURES = 4;
 	
-	public ArrayList<GImage> imageSet;
+	public ArrayList<String> imageSet;
 	public Color color;
+	public AudioClip clip;
 	public boolean containsEnemy;
 	
 	public Trial () {
-		imageSet = new ArrayList<GImage>();
+		imageSet = new ArrayList<String>();
 		containsEnemy = false;
 	}
 	
@@ -21,6 +21,6 @@ public class Trial {
 	}
 	
 	public void add (String imageName) {
-		imageSet.add(new GImage(imageName));
+		imageSet.add(imageName);
 	}
 }

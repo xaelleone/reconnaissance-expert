@@ -33,12 +33,28 @@ public class ImageSetGenerator {
 	}
 	
 	private void readQuotaTable () {
-		ArrayList<Integer> temp = new ArrayList<Integer>();
-		temp.add(20);
-		temp.add(40);
-		temp.add(40);
-		temp.add(100);
-		quotas = new QuotaSet(temp);
+		ArrayList<Integer> list = new ArrayList<Integer>();
+		String fileName = isBinaryAlarm ? "binaryQuotas.txt" : "likelihoodQuotas.txt";
+		try {
+			Scanner fin = new Scanner(new BufferedReader(new FileReader(fileName)));
+			for (int i = 0; fin.hasNextLine(); i++) {
+				if (TrackerConstants.AUTOMATION_CORRECT_PERCENTAGES[i] * 100 == reliability) {
+					String[] splitted = fin.nextLine().split(" ");
+					for (String s : splitted) {
+						list.add(Integer.parseInt(s));
+					}
+					break;
+				}
+				else {
+					fin.nextLine();
+				}
+			}
+			fin.close();
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
+		quotas = new QuotaSet(list);
 	}
 	
 	private ArrayList<Trial> assignColors (ArrayList<Trial> allTrials) {
