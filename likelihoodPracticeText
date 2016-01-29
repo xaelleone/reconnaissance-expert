@@ -16,5 +16,13 @@ Excellent! So long as the detector is always correct,
 you can focus all your attention on the cursor.
 Whoops! Turns out that sometimes there is a false alarm, 
 and the automation mistakenly detects an enemy.
-Sometimes, it misses the enemy altogether. 
+Sometimes, the automation is not completely sure about its recommendation.
+Here, it is somewhat certain that there is an enemy.
+Here, it is somewhat sure the pictures are clear.
+
+These recommendations are more likely to be incorrect than the others.
+
+They can give false alarms and miss the enemy.
+ 
 Take a break; the game is about to begin.
+

@@ -12,6 +12,8 @@ public class TrackerConstants {
 	
 	public static final int JOYSTICK_SENSITIVITY = 50;
 	
+	public static final int TARGET_SIZE = 30;
+	
 	public static final int SCREEN_DIVISION_X = 1000;
 	public static final int TRACKER_AREA_BOTTOM = 200;
 	public static final int CURSOR_SIZE = 20;

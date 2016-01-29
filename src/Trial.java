@@ -8,7 +8,7 @@ public class Trial {
 	
 	public ArrayList<String> imageSet;
 	public Color color;
-	public AudioClip clip;
+	public String clip;
 	public boolean containsEnemy;
 	
 	public Trial () {
@@ -22,5 +22,12 @@ public class Trial {
 	
 	public void add (String imageName) {
 		imageSet.add(imageName);
+	}
+	
+	public int targetLocation () {
+		for (int i = 0; i < imageSet.size(); i++) {
+			if (imageSet.get(i).contains("Target")) return i;
+		}
+		return -1;
 	}
 }

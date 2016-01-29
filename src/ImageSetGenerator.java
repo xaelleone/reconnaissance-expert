@@ -62,6 +62,7 @@ public class ImageSetGenerator {
 		for (int i = 0; i < quotas.list.size(); i++) {
 			for (int j = 0; j < quotas.list.get(i); j++) {
 				allTrials.get(overallIndex).color = quotas.getColor(i, isBinaryAlarm);
+				allTrials.get(overallIndex).clip = quotas.getAudioClip(isBinaryAlarm, i);
 				overallIndex++;
 			}
 		}

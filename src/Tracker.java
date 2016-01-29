@@ -10,10 +10,18 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Dictionary;
+import java.util.Hashtable;
 import java.util.Scanner;
 
 import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JSlider;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import acm.graphics.GImage;
 import acm.graphics.GLabel;
@@ -52,6 +60,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private ArrayList<GLine> cursorSwarm;
 	private double totalDistance = 0;
 	private int totalTimeSteps = 0;
+	private AudioPlayer audio = new AudioPlayer();
 	
 	public static void main (String[] args) {
 		new Tracker().start();
@@ -59,7 +68,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	
 	public void init () {
 		try {
-			Scanner fin = new Scanner(new BufferedReader(new FileReader("practiceText")));
+			Scanner fin = new Scanner(new BufferedReader(new FileReader(isBinaryAlarm ? "practiceText" : "likelihoodPracticeText")));
 			while (fin.hasNextLine()) {
 				practiceText.add(fin.nextLine());
 			}
@@ -82,7 +91,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	
 	private void initMainScreen () {
 		this.removeAll();
-		entries = new DataAggregator();
+		entries = new DataAggregator(startTime);
 		
 		automationRecommendation = new GRect(TrackerConstants.SCREEN_DIVISION_X + (APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X) / 2 + TrackerConstants.RECOMMENDER_BUFFER, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM + TrackerConstants.RECOMMENDER_BUFFER, (APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X) / 2 - TrackerConstants.RECOMMENDER_BUFFER * 2, TrackerConstants.TRACKER_AREA_BOTTOM - TrackerConstants.RECOMMENDER_BUFFER * 2);
 		automationRecommendation.setFilled(true);
@@ -232,7 +241,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}*/
 	
 	private void loadPracticeImages () throws IOException {
-		Scanner fin = new Scanner(new BufferedReader(new FileReader("practiceImageSets.txt")));
+		Scanner fin = new Scanner(new BufferedReader(new FileReader(isBinaryAlarm ? "practiceImageSets.txt": "likelihoodPracticeImageSets.txt")));
 		ArrayList<GImage> temp;
 		String[] splitted;
 		while (fin.hasNextLine()) {
@@ -250,7 +259,28 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		imagesToUse = new ArrayList<GImage>(practiceImages.get(counter));
 		Collections.shuffle(imagesToUse);
 		addImagesToCanvas();
-		automationRecommendation.setColor((counter == 3 || counter == 5) ? Color.RED : Color.GREEN);
+		if (counter == 5 || counter == 7) {
+			automationRecommendation.setColor(Color.RED);
+			audio.play("Danger.wav");
+			audio = new AudioPlayer();
+		}
+		else if ((counter == 9 || counter == 11) && !isBinaryAlarm) {
+			automationRecommendation.setColor(QuotaSet.LIKELIHOOD_COLORS[1]);
+			audio.play("warning.wav");
+			audio = new AudioPlayer();
+		}
+		else if (counter == 10 || counter == 12) {
+			automationRecommendation.setColor(QuotaSet.LIKELIHOOD_COLORS[2]);
+			audio.play("Caution.wav");
+			audio = new AudioPlayer();
+		}
+		else {
+			if (counter == 6 || counter == 8) {
+				audio.play("clear.wav");
+				audio = new AudioPlayer();
+			}
+			automationRecommendation.setColor(Color.GREEN);
+		}
 	}
 	
 	private void putRandomImages () {
@@ -269,6 +299,8 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		}
 		addImagesToCanvas();
 		automationRecommendation.setColor(t.color);
+		audio.play(t.clip);
+		audio = new AudioPlayer();
 		/*imagesToUse = new ArrayList<GImage>();
 		noEnemy = (Math.random() < TrackerConstants.NO_ENEMY_PROPORTION);
 		int noEnemyImageCount = noEnemy ? 4 : 3;
@@ -306,12 +338,12 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	private void addEntry (int answer) {
-		entries.add(new Entry(allTrials.get(counter - 1), answer, totalDistance / totalTimeSteps));
+		entries.add(new Entry(allTrials.get(counter - 1), answer, totalDistance / totalTimeSteps, System.currentTimeMillis() - startTime, counter));
 	}
 	
 	private void addTarget () {
 		ArrayList<GObject> shapes = new ArrayList<GObject>();
-		double unit = TrackerConstants.CURSOR_SIZE * 3d / 2;
+		double unit = TrackerConstants.TARGET_SIZE;
 		double sep = unit * 3d / 4;
 		Tuple o = Physics.ORIGIN;
 		shapes.add(new GOval(TrackerConstants.SCREEN_DIVISION_X + (APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X) / 2 - unit, (APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM) / 2 - unit, unit * 2, unit * 2));
@@ -346,8 +378,13 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	private void incrementTrialNumber () {
+		if (!inPracticeMode && counter % 5 == 0) {
+			running = false; //pause the tracker
+			displayAndLogPolls();
+			running = true;
+		}
 		counter++;
-		if (counter >= 8 && inPracticeMode) {
+		if (counter >= (isBinaryAlarm ? 10:14) && inPracticeMode) {
 			inPracticeMode = false;
 			counter = 1;
 		}
@@ -357,12 +394,13 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		}
 		else {
 			trialNumber.setLabel("Trial " + counter + "/" + TrackerConstants.TRIAL_COUNT);
-			otherPracticeTip.setLabel("Score: " + entries.getScore());
+			otherPracticeTip.setLabel("Score: " + entries.getScore() + "/" + 15 * counter);
 		}
 	}
 	
 	private void nextRound (int answer) { //0: spotted enemy, 1: all clear, -1: no answer
 		if (!inPracticeMode) addEntry(answer);
+		else entries.joystickControl = totalDistance / totalTimeSteps;
 		incrementTrialNumber();
 		putRandomImages();
 		startTime = System.currentTimeMillis();
@@ -374,6 +412,68 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		for (GLine g : cursorSwarm) {
 			g.move(x, y);
 		}
+	}
+	
+	private void displayAndLogPolls () {
+		Dictionary<Integer, JLabel> labels;
+		String message;
+		PollResult p = new PollResult();
+		for (int i = 0; i < 3; i++) {
+			labels = new Hashtable<Integer, JLabel>();
+			switch (i) {
+			case 0:
+				message = "How confident are you in completing the task without the detector?";
+				labels.put(0, new JLabel("Not confident at all"));
+				labels.put(100, new JLabel("Absolutely confident"));
+				break;
+			case 1:
+				message = "How reliable are the automated detector's recommendations?";
+				labels.put(0,  new JLabel("Not reliable at all"));
+				labels.put(100,  new JLabel("Absolutely reliable"));
+				break;
+			default:
+				message = "How much do you trust the automated detector's recommendations?";
+				labels.put(0, new JLabel("I don't trust it at all"));
+				labels.put(100, new JLabel("I absolutely trust it"));
+			}
+			p.results.add(displayPoll(message, labels));
+		}
+		entries.addPollResult(p);
+	}
+	
+	private int displayPoll (String message, Dictionary<Integer, JLabel> labels) {
+		JFrame parent = new JFrame();
+		JOptionPane optionPane = new JOptionPane();
+		JSlider slider = getSlider(optionPane, labels);
+		optionPane.setMessage(new Object[] {message, slider });
+		optionPane.setMessageType(JOptionPane.QUESTION_MESSAGE);
+		optionPane.setOptionType(JOptionPane.OK_CANCEL_OPTION);
+		JDialog dialog = optionPane.createDialog(parent, "Question");
+		dialog.setVisible(true);
+		Object output = optionPane.getInputValue();
+		if (output.equals(JOptionPane.UNINITIALIZED_VALUE)) {
+			return 50; //default average value
+		}
+		return (int) optionPane.getInputValue();
+	}
+
+	private JSlider getSlider(final JOptionPane optionPane, Dictionary<Integer, JLabel> labels) {
+	    JSlider slider = new JSlider();
+	    slider.setMajorTickSpacing(25);
+	    slider.setPaintTicks(true);
+	    slider.setPaintLabels(true);
+	    slider.setLabelTable(labels);
+	    slider.setValue(50);
+	    ChangeListener changeListener = new ChangeListener() {
+	    	public void stateChanged(ChangeEvent changeEvent) {
+	    		JSlider theSlider = (JSlider) changeEvent.getSource();
+	    		if (!theSlider.getValueIsAdjusting()) {
+	    			optionPane.setInputValue(new Integer(theSlider.getValue()));
+	    		}
+	    	}
+	    };
+	    slider.addChangeListener(changeListener);
+	    return slider;
 	}
 	
 	public void run () {
@@ -423,6 +523,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 					moveJoystick(joystick.getComponents()[12].getPollData(), joystick.getComponents()[13].getPollData());
 					move = p.computeMove();
 					moveCursorSwarm(move.x, move.y);
+					entries.addTrackerEntry(new TrackerEntry(counter, p.cursor, p.mouseDiff));
 					totalDistance += p.cursor.distance(new Tuple(0, 0));
 					totalTimeSteps++;
 					/*currentTime = System.currentTimeMillis() / 200d / Math.PI;
@@ -432,6 +533,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 					//if (cursor.getX() + cursor.getWidth() < TrackerConstants.SCREEN_DIVISION_X && cursor.isVisible()) cursor.setVisible(false);
 				}	
 				if (System.currentTimeMillis() % 10 == 0) {
+					if (audio.playCompleted) audio.close();
 					timer.setLabel("Time left: " + Double.toString((int)(100 * (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime)) / 1000d) / 100d));
 					if (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime) <= 0) {
 						nextRound(-1);
