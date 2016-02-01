@@ -23,6 +23,12 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.theeyetribe.client.GazeManager;
+import com.theeyetribe.client.GazeManager.ApiVersion;
+import com.theeyetribe.client.GazeManager.ClientMode;
+import com.theeyetribe.client.IGazeListener;
+import com.theeyetribe.client.data.GazeData;
+
 import acm.graphics.GImage;
 import acm.graphics.GLabel;
 import acm.graphics.GLine;
@@ -91,7 +97,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	
 	private void initMainScreen () {
 		this.removeAll();
-		entries = new DataAggregator(startTime);
+		entries = new DataAggregator(startTime, "test");
 		
 		automationRecommendation = new GRect(TrackerConstants.SCREEN_DIVISION_X + (APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X) / 2 + TrackerConstants.RECOMMENDER_BUFFER, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM + TrackerConstants.RECOMMENDER_BUFFER, (APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X) / 2 - TrackerConstants.RECOMMENDER_BUFFER * 2, TrackerConstants.TRACKER_AREA_BOTTOM - TrackerConstants.RECOMMENDER_BUFFER * 2);
 		automationRecommendation.setFilled(true);
@@ -378,6 +384,10 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	private void incrementTrialNumber () {
+		if (!inPracticeMode && counter == TrackerConstants.TRIAL_COUNT) {
+			entries.printOutput();
+			this.exit();
+		}
 		if (!inPracticeMode && counter % 5 == 0) {
 			running = false; //pause the tracker
 			displayAndLogPolls();
@@ -483,16 +493,13 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 				practice();
 			}
 		});
-		/*final GazeManager gm = GazeManager.getInstance();
+		final GazeManager gm = GazeManager.getInstance();
         boolean success = gm.activate(ApiVersion.VERSION_1_0, ClientMode.PUSH);
         final IGazeListener listener = new IGazeListener () {
         	@Override
             public void onGazeUpdate(GazeData gazeData)
             {
-        		// cursor.setLocation(gazeData.smoothedCoordinates.x - this.getGCanvas().getLocationOnScreen().x, gazeData.smoothedCoordinates.y - this.getGCanvas().getLocationOnScreen().y);
-        		if (gazeData.smoothedCoordinates.x - this.getGCanvas().getLocationOnScreen().x < TrackerConstants.SCREEN_DIVISION_X) leftCount++;
-        		totalTimeSteps++;
-        		cursor.getLocation().toPoint().distance(targetInline.getLocation().toPoint());
+        		entries.addGazeData(gazeData);
             }
         };
         gm.addGazeListener(listener);
@@ -504,7 +511,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
                 gm.removeGazeListener(listener);
                 gm.deactivate();
             }
-        });*/
+        });
 		startTime = System.currentTimeMillis();	
 		Tuple move;
 		boolean initialized = false;
