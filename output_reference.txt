@@ -1,0 +1,31 @@
+file name:
+
+name_(b|l)_(70|80|90)_(detection|poll|tracker|eye)_output.txt
+
+detection task columns:
+
+1. Trial Number (1-indexed)
+2. Start Time (relative to beginning, in ms)
+3. True State (0 if absent, 1 if present)
+4. target location (-1 if absent, 0, 1, 2, 3, starting from top left and going right)
+5. alert given (DANGER, WARNING, CAUTION, CLEAR)
+6. response given (Y = present, N = absent)
+7. time elapsed (ms)
+8. detection score change
+9. tracking task score change
+
+poll output:
+
+1. Trial Number
+2. Confidence in performing the task
+3. perceived reliability
+4. trust
+
+tracker output:
+
+1. Trial number
+2. relative start time
+3. joystick x
+4. joystick y
+5. cursor x (relative to origin)
+6. cursor y (relative to origin)

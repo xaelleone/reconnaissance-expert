@@ -67,6 +67,9 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private double totalDistance = 0;
 	private int totalTimeSteps = 0;
 	private AudioPlayer audio = new AudioPlayer();
+	private String fileName;
+	
+	//TODO: give feedback as to whether the user is correct or not
 	
 	public static void main (String[] args) {
 		new Tracker().start();
@@ -89,6 +92,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		for (int i = 0; i < stringForm.length; i++) {
 			stringForm[i] = Double.toString((int)(TrackerConstants.AUTOMATION_CORRECT_PERCENTAGES[i] * 100));
 		}
+		fileName = (String)JOptionPane.showInputDialog(this, "File name (no extension):", "Setup", JOptionPane.PLAIN_MESSAGE, null, null, null);
 		reliability = Double.parseDouble((String)JOptionPane.showInputDialog(this, "Reliability:", "Setup", JOptionPane.PLAIN_MESSAGE, null, stringForm, null));
 		String[] alarmTypeOptions = new String[] {"Binary alarm", "Likelihood alarm"};
 		isBinaryAlarm = ((String)JOptionPane.showInputDialog(this, "Alarm type:", "Setup", JOptionPane.PLAIN_MESSAGE, null, alarmTypeOptions, null)).equals(alarmTypeOptions[0]);
@@ -97,7 +101,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	
 	private void initMainScreen () {
 		this.removeAll();
-		entries = new DataAggregator(startTime, "test");
+		entries = new DataAggregator(startTime, fileName, reliability, isBinaryAlarm);
 		
 		automationRecommendation = new GRect(TrackerConstants.SCREEN_DIVISION_X + (APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X) / 2 + TrackerConstants.RECOMMENDER_BUFFER, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM + TrackerConstants.RECOMMENDER_BUFFER, (APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X) / 2 - TrackerConstants.RECOMMENDER_BUFFER * 2, TrackerConstants.TRACKER_AREA_BOTTOM - TrackerConstants.RECOMMENDER_BUFFER * 2);
 		automationRecommendation.setFilled(true);
@@ -427,7 +431,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private void displayAndLogPolls () {
 		Dictionary<Integer, JLabel> labels;
 		String message;
-		PollResult p = new PollResult();
+		PollResult p = new PollResult(counter);
 		for (int i = 0; i < 3; i++) {
 			labels = new Hashtable<Integer, JLabel>();
 			switch (i) {
