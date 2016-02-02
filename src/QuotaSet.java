@@ -1,10 +1,7 @@
-import java.applet.Applet;
-import java.applet.AudioClip;
 import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -12,6 +9,7 @@ public class QuotaSet {
 	public static final Color[] BINARY_COLORS = new Color [] { Color.RED, Color.GREEN };
 	public static final Color[] LIKELIHOOD_COLORS = new Color [] { Color.RED, 
 			new Color(255, 201, 14), new Color(181, 230, 29), Color.GREEN };
+	public static final String[] RECOMMENDATION_STRINGS = new String [] { "DANGER", "WARNING", "CAUTION", "CLEAR" };
 	
 	private ArrayList<String> clips = new ArrayList<String>();
 	public ArrayList<Integer> list;

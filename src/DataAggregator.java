@@ -125,11 +125,31 @@ public class DataAggregator {
 		}
 	}
 	
-	public int getScore () {
-		int total = 0;
+	public double getScore () {
+		double total = 0;
 		for (Entry e : entryList) {
 			total += e.getScore();
 		}
 		return total;
+	}
+	
+	public double getTrackerScore () {
+		double total = 0;
+		for (Entry e : entryList) {
+			total += e.getTrackerScore();
+		}
+		return total;
+	}
+	
+	public double getDetectionScore () {
+		double total = 0;
+		for (Entry e : entryList) {
+			total += e.getDetectionScore();
+		}
+		return total;
+	}
+	
+	public Entry getMostRecentEntry () {
+		return entryList.get(entryList.size() - 1);
 	}
 }

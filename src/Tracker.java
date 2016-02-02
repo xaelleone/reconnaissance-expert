@@ -23,10 +23,6 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import com.theeyetribe.client.GazeManager;
-import com.theeyetribe.client.GazeManager.ApiVersion;
-import com.theeyetribe.client.GazeManager.ClientMode;
-import com.theeyetribe.client.IGazeListener;
 import com.theeyetribe.client.data.GazeData;
 
 import acm.graphics.GImage;
@@ -69,6 +65,8 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private AudioPlayer audio = new AudioPlayer();
 	private String fileName;
 	private ArrayList<GazeData> currentGazeDataSet = new ArrayList<GazeData>();
+	private double pauseStart;
+	private double pauseBank = 0;
 	
 	//TODO: give feedback as to whether the user is correct or not
 	
@@ -295,7 +293,6 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	private void putRandomImages () {
-		//TODO: precompute all image sets so that proportions are complied with
 		for (GImage im : imagesToUse) {
 			this.remove(im);
 		}
@@ -388,16 +385,31 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		}
 	}
 	
+	private void pause () {
+		running = false;
+		pauseStart = System.currentTimeMillis();
+	}
+	
+	private void unpause () {
+		running = true;
+		pauseBank += System.currentTimeMillis() - pauseStart;
+	}
+	
 	private void incrementTrialNumber () {
+		if (!inPracticeMode) {
+			pause();
+			displayRoundFeedback();
+			unpause();
+		}
 		if (!inPracticeMode && counter == TrackerConstants.TRIAL_COUNT) {
 			running = false;
 			entries.printOutput();
 			this.exit();
 		}
 		if (!inPracticeMode && counter % 5 == 0) {
-			running = false; //pause the tracker
+			pause(); //pause the tracker
 			displayAndLogPolls();
-			running = true;
+			unpause();
 		}
 		counter++;
 		if (counter >= (isBinaryAlarm ? 10:14) && inPracticeMode) {
@@ -410,12 +422,13 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		}
 		else {
 			trialNumber.setLabel("Trial " + counter + "/" + TrackerConstants.TRIAL_COUNT);
-			otherPracticeTip.setLabel("Score: " + entries.getScore() + "/" + 15 * counter);
+			otherPracticeTip.setLabel("Score: " + formatScore(entries.getScore(), false) + "/" + 15 * counter);
 			this.currentGazeDataSet = new ArrayList<GazeData>();
 		}
 	}
 	
 	private void nextRound (int answer) { //0: spotted enemy, 1: all clear, -1: no answer
+		pauseBank = 0;
 		if (!inPracticeMode) addEntry(answer);
 		else entries.joystickControl = totalDistance / totalTimeSteps;
 		incrementTrialNumber();
@@ -499,6 +512,33 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	    return slider;
 	}
 	
+	private String getRecommendationString (Color c) {
+		for (int i = 0; i < QuotaSet.LIKELIHOOD_COLORS.length; i++) {
+			if (c.equals(QuotaSet.LIKELIHOOD_COLORS[i])) {
+				return QuotaSet.RECOMMENDATION_STRINGS[i];
+			}
+		}
+		return "???"; //unclear what occurred
+	}
+	
+	private String formatScore (double d, boolean addPlus) {
+		String s = Integer.toString((int)d);
+		if (addPlus && (int)d >= 0) s = "+" + s;
+		return s;
+	}
+	
+	private void displayRoundFeedback () {
+		Entry last = entries.getMostRecentEntry();
+		JOptionPane.showMessageDialog(this, "Detector recommendation: " + 
+				getRecommendationString(last.t.color) + "\n" +
+				"Your identification: " + 
+				(last.identifiedEnemy ? "DANGER" : "CLEAR") + "\n" + 
+				"You are " + (last.identifiedEnemy == last.t.containsEnemy ? "correct!" : "incorrect.") + "\n" + 
+				"Your detection score: " + formatScore(entries.getDetectionScore(), false) + " (" + formatScore(last.getDetectionScore(), true) + ") \n" +
+				"Your tracker score: " + formatScore(entries.getTrackerScore(), false) + " (" + formatScore(last.getTrackerScore(), true) + ") \n"
+		);
+	}
+	
 	public void run () {
 		toPractice.addActionListener(new ActionListener() {
 			@Override
@@ -559,8 +599,8 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 				}	
 				if (System.currentTimeMillis() % 10 == 0) {
 					if (audio.playCompleted) audio.close();
-					timer.setLabel("Time left: " + Double.toString((int)(100 * (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime)) / 1000d) / 100d));
-					if (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime) <= 0) {
+					timer.setLabel("Time left: " + Double.toString((int)(100 * (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime - pauseBank)) / 1000d) / 100d));
+					if (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime - pauseBank) <= 0) {
 						nextRound(-1);
 					}
 				}
