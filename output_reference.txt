@@ -13,6 +13,9 @@ detection task columns:
 7. time elapsed (ms)
 8. detection score change
 9. tracking task score change
+10 - 14. percentage dwell
+15. first fixation
+16 - 20. fixation duration
 
 poll output:
 

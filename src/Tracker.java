@@ -68,6 +68,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private int totalTimeSteps = 0;
 	private AudioPlayer audio = new AudioPlayer();
 	private String fileName;
+	private ArrayList<GazeData> currentGazeDataSet = new ArrayList<GazeData>();
 	
 	//TODO: give feedback as to whether the user is correct or not
 	
@@ -140,7 +141,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private void initializeControllers() {
 		ControllerEnvironment ce = ControllerEnvironment.getDefaultEnvironment(); 
 		Controller[] cs = ce.getControllers();
-		joystick = cs[3]; //SUBJECT TO CHANGE.
+		joystick = cs[TrackerConstants.JOYSTICK_INPUT_NUMBER]; //SUBJECT TO CHANGE.
 	}
 	
 	private void addTrialLabels () {
@@ -348,7 +349,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	private void addEntry (int answer) {
-		entries.add(new Entry(allTrials.get(counter - 1), answer, totalDistance / totalTimeSteps, System.currentTimeMillis() - startTime, counter));
+		entries.add(new Entry(allTrials.get(counter - 1), answer, totalDistance / totalTimeSteps, System.currentTimeMillis() - startTime, counter, currentGazeDataSet, new Tuple(this.getGCanvas().getLocationOnScreen())));
 	}
 	
 	private void addTarget () {
@@ -389,6 +390,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	
 	private void incrementTrialNumber () {
 		if (!inPracticeMode && counter == TrackerConstants.TRIAL_COUNT) {
+			running = false;
 			entries.printOutput();
 			this.exit();
 		}
@@ -409,6 +411,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		else {
 			trialNumber.setLabel("Trial " + counter + "/" + TrackerConstants.TRIAL_COUNT);
 			otherPracticeTip.setLabel("Score: " + entries.getScore() + "/" + 15 * counter);
+			this.currentGazeDataSet = new ArrayList<GazeData>();
 		}
 	}
 	
@@ -429,46 +432,52 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	private void displayAndLogPolls () {
-		Dictionary<Integer, JLabel> labels;
-		String message;
-		PollResult p = new PollResult(counter);
-		for (int i = 0; i < 3; i++) {
-			labels = new Hashtable<Integer, JLabel>();
+		ArrayList<Dictionary<Integer, JLabel>> labels = new ArrayList<Dictionary<Integer, JLabel>>();
+		String[] messages = new String[TrackerConstants.NUM_POLLS];
+		Dictionary<Integer, JLabel> temp;
+		for (int i = 0; i < TrackerConstants.NUM_POLLS; i++) {
+			temp = new Hashtable<Integer, JLabel>();
 			switch (i) {
 			case 0:
-				message = "How confident are you in completing the task without the detector?";
-				labels.put(0, new JLabel("Not confident at all"));
-				labels.put(100, new JLabel("Absolutely confident"));
+				messages[0] = "How confident are you in completing the task without the detector?";
+				temp.put(0, new JLabel("Not confident at all"));
+				temp.put(100, new JLabel("Absolutely confident"));
 				break;
 			case 1:
-				message = "How reliable are the automated detector's recommendations?";
-				labels.put(0,  new JLabel("Not reliable at all"));
-				labels.put(100,  new JLabel("Absolutely reliable"));
+				messages[1] = "How reliable are the automated detector's recommendations?";
+				temp.put(0,  new JLabel("Not reliable at all"));
+				temp.put(100,  new JLabel("Absolutely reliable"));
 				break;
 			default:
-				message = "How much do you trust the automated detector's recommendations?";
-				labels.put(0, new JLabel("I don't trust it at all"));
-				labels.put(100, new JLabel("I absolutely trust it"));
+				messages[2] = "How much do you trust the automated detector's recommendations?";
+				temp.put(0, new JLabel("I don't trust it at all"));
+				temp.put(100, new JLabel("I absolutely trust it"));
 			}
-			p.results.add(displayPoll(message, labels));
+			labels.add(temp);
 		}
-		entries.addPollResult(p);
+		entries.addPollResult(displayPoll(messages, labels));
 	}
 	
-	private int displayPoll (String message, Dictionary<Integer, JLabel> labels) {
+	private PollResult displayPoll (String[] message, ArrayList<Dictionary<Integer, JLabel>> labels) {
 		JFrame parent = new JFrame();
 		JOptionPane optionPane = new JOptionPane();
-		JSlider slider = getSlider(optionPane, labels);
-		optionPane.setMessage(new Object[] {message, slider });
+		JSlider[] sliders = new JSlider[TrackerConstants.NUM_POLLS];
+		Object[] thingsOnOptionPane = new Object[TrackerConstants.NUM_POLLS * 2];
+		for (int i = 0; i < sliders.length; i++) {
+			sliders[i] = getSlider(optionPane, labels.get(i));
+			thingsOnOptionPane[i * 2] = message[i];
+			thingsOnOptionPane[i * 2 + 1] = sliders[i];
+		}
+		optionPane.setMessage(thingsOnOptionPane);
 		optionPane.setMessageType(JOptionPane.QUESTION_MESSAGE);
 		optionPane.setOptionType(JOptionPane.OK_CANCEL_OPTION);
 		JDialog dialog = optionPane.createDialog(parent, "Question");
 		dialog.setVisible(true);
-		Object output = optionPane.getInputValue();
-		if (output.equals(JOptionPane.UNINITIALIZED_VALUE)) {
-			return 50; //default average value
+		PollResult p = new PollResult(counter);
+		for (int i = 0; i < sliders.length; i++) {
+			p.results.add(sliders[i].getValue());
 		}
-		return (int) optionPane.getInputValue();
+		return p;
 	}
 
 	private JSlider getSlider(final JOptionPane optionPane, Dictionary<Integer, JLabel> labels) {
@@ -497,13 +506,18 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 				practice();
 			}
 		});
-		final GazeManager gm = GazeManager.getInstance();
+		/*final GazeManager gm = GazeManager.getInstance();
         boolean success = gm.activate(ApiVersion.VERSION_1_0, ClientMode.PUSH);
         final IGazeListener listener = new IGazeListener () {
         	@Override
             public void onGazeUpdate(GazeData gazeData)
             {
-        		entries.addGazeData(gazeData);
+        		/*
+        		 * // cursor.setLocation(gazeData.smoothedCoordinates.x - this.getGCanvas().getLocationOnScreen().x, gazeData.smoothedCoordinates.y - this.getGCanvas().getLocationOnScreen().y);
+ -        		if (gazeData.smoothedCoordinates.x - this.getGCanvas().getLocationOnScreen().x < TrackerConstants.SCREEN_DIVISION_X) leftCount++;
+ -        		totalTimeSteps++;
+        		 
+        		currentGazeDataSet.add(gazeData);
             }
         };
         gm.addGazeListener(listener);
@@ -515,7 +529,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
                 gm.removeGazeListener(listener);
                 gm.deactivate();
             }
-        });
+        });*/
 		startTime = System.currentTimeMillis();	
 		Tuple move;
 		boolean initialized = false;

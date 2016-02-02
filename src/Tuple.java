@@ -1,3 +1,4 @@
+import java.awt.Point;
 
 public class Tuple {
 	public double x;
@@ -8,6 +9,11 @@ public class Tuple {
 		y = b;
 	}
 	
+	public Tuple(Point locationOnScreen) {
+		x = locationOnScreen.getX();
+		y = locationOnScreen.getY();
+	}
+
 	public double innerProduct () {
 		return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
 	}

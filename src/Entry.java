@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+
+import com.theeyetribe.client.data.GazeData;
 
 public class Entry {
 	public Trial t;
@@ -6,14 +9,18 @@ public class Entry {
 	public double meanDistance;
 	public int trialNumber;
 	public double absoluteStartTime;
+	public ArrayList<GazeData> eyeData;
+	public Tuple canvasPosOnScreen;
 	
-	public Entry (Trial tr, int a, double meanDist, double time, int counter) {
+	public Entry (Trial tr, int a, double meanDist, double time, int counter, ArrayList<GazeData> gazeData, Tuple canvas) {
 		t = tr;
 		resolveAnswer (a);
 		meanDistance = meanDist;
 		timeSpent = time;
 		trialNumber = counter;
 		absoluteStartTime = System.currentTimeMillis();
+		eyeData = new ArrayList<GazeData>(gazeData);
+		canvasPosOnScreen = canvas;
 	}
 	
 	private void resolveAnswer (int a) {
@@ -47,6 +54,47 @@ public class Entry {
 	
 	public double getScore () {
 		return getDetectionScore() + getTrackerScore();
+	}
+	
+	public ArrayList<Double> percentageDwell () {
+		return eyePercentage(true);
+	}
+	
+	public ArrayList<Double> fixationDuration () {
+		return eyePercentage(false);
+	}
+	
+	public double firstFixation () {
+		for (GazeData g : eyeData) {
+			if (g.isFixated) {
+				return g.timeStamp - this.absoluteStartTime;
+			}
+		}
+		return 10000; //never fixated: what is wrong with your eyes?
+	}
+	
+	private ArrayList<Double> eyePercentage (boolean dwellOnly) {
+		ArrayList<Double> percentages = new ArrayList<Double>();
+		for (int i = 0; i < 6; i++) {
+			percentages.add(0.0);
+		}
+		int classification;
+		for (GazeData g : eyeData) {
+			classification = classifyEyeLocation(g);
+			if (dwellOnly || g.isFixated) {
+				percentages.set(classification, percentages.get(classification) +  1.0 / eyeData.size());
+			}
+		}
+		return percentages;
+	}
+	
+	private int classifyEyeLocation (GazeData g) {
+		Tuple realPos = new Tuple(g.smoothedCoordinates.x - canvasPosOnScreen.x, g.smoothedCoordinates.y - canvasPosOnScreen.y);
+		if (realPos.y > Tracker.APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM) return 5;
+		if (realPos.x > TrackerConstants.SCREEN_DIVISION_X) return 4;
+		int right = realPos.x > (Tracker.APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X) / 2 ? 1 : 0;
+		int bottom = realPos.y > (Tracker.APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM) / 2 ? 1 : 0;
+		return 2 * bottom + right;
 	}
 	
 	/*public boolean enemyContained;

@@ -6,7 +6,7 @@ public class TrackerConstants {
 	public static final double[] AUTOMATION_CORRECT_PERCENTAGES = new double[] {0.7, 0.8, 0.9};
 	
 	public static final double TRIAL_LENGTH_MS = 10000;
-	public static final int TRIAL_COUNT = 200;
+	public static final int TRIAL_COUNT = 10;
 	
 	public static final int EFFECTIVE_PRACTICE_TRIAL_COUNT = 8;
 	
@@ -14,6 +14,8 @@ public class TrackerConstants {
 	
 	public static final int TARGET_SIZE = 30;
 	
+	public static final int JOYSTICK_INPUT_NUMBER = 2;
+	public static final int NUM_POLLS = 3;
 	public static final int SCREEN_DIVISION_X = 1000;
 	public static final int TRACKER_AREA_BOTTOM = 200;
 	public static final int CURSOR_SIZE = 20;

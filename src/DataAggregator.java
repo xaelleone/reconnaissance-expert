@@ -11,7 +11,6 @@ public class DataAggregator {
 	public ArrayList<PollResult> pollResults;
 	public double totalStartTime;
 	public ArrayList<TrackerEntry> trackerData;
-	public ArrayList<GazeData> eyeData;
 	public String fileNameBase;
 	public double reliability;
 	public boolean isBinaryAlarm;
@@ -39,10 +38,6 @@ public class DataAggregator {
 		pollResults.add(p);
 	}
 	
-	public void addGazeData (GazeData g) {
-		eyeData.add(g);
-	}
-	
 	public void addTrackerEntry (TrackerEntry t) {
 		trackerData.add(t);
 	}
@@ -51,6 +46,22 @@ public class DataAggregator {
 		printDetectionOutput();
 		printPollOutput();
 		printTrackerOutput();
+		printEyeOutput();
+	}
+	
+	public void printEyeOutput () {
+		try {
+			PrintWriter fout = new PrintWriter(new FileWriter(fileNameBase + "eye_output.txt"));
+			for (Entry e : entryList) {
+				for (GazeData g : e.eyeData) {
+					fout.println(g.isFixated + " " + g.smoothedCoordinates);
+				}
+			}
+			fout.close();
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	public void printTrackerOutput () {
@@ -90,19 +101,27 @@ public class DataAggregator {
 		try {
 			PrintWriter fout = new PrintWriter(new FileWriter(fileNameBase + "detection_output.txt"));
 			for (Entry e : entryList) {
-				fout.println(e.trialNumber + " " + 
+				fout.print(e.trialNumber + " " + 
 						(e.absoluteStartTime - this.totalStartTime) + " " + 
 						e.t.containsEnemy + " " + 
 						e.t.targetLocation() + " " + 
 						e.identifiedEnemy + " " + 
 						e.timeSpent + " " + 
 						e.getTrackerScore() + " " + 
-						e.getDetectionScore());
+						e.getDetectionScore() + " ");
+				for (double d : e.percentageDwell()) {
+					fout.println(d + " ");
+				}
+				fout.println(e.firstFixation() + " ");
+				for (double d : e.fixationDuration()) {
+					fout.println(d + " ");
+				}
+				fout.println();
 			}
 			fout.close();
 		}
-		catch (IOException e) {
-			e.printStackTrace();
+		catch (IOException ex) {
+			ex.printStackTrace();
 		}
 	}
 	
