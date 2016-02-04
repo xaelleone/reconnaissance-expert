@@ -31,7 +31,8 @@ public class DataAggregator {
 	}
 	
 	public void add (Entry e) {
-		entryList.add(e);
+		if (entryList.size() == 0 || entryList.get(entryList.size() - 1).trialNumber != e.trialNumber) //take only first answer
+			entryList.add(e);
 	}
 	
 	public void addPollResult (PollResult p) {

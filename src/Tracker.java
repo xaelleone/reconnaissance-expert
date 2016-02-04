@@ -306,7 +306,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		fin.close();
 	}
 	
-	private void getPracticeImages () {
+	/*private void getPracticeImages () {
 		imagesToUse = new ArrayList<GImage>(practiceImages.get(counter));
 		Collections.shuffle(imagesToUse);
 		addImagesToCanvas();
@@ -333,7 +333,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 			}
 			automationRecommendation.setColor(Color.GREEN);
 		}
-	}
+	}*/
 	
 	private void putRandomImages () {
 		for (GImage im : imagesToUse) {
@@ -392,7 +392,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	private void addEntry (int answer) {
-		entries.add(new Entry(allTrials.get(counter - 1), answer, totalDistance / totalTimeSteps, System.currentTimeMillis() - startTime, counter, currentGazeDataSet, new Tuple(this.getGCanvas().getLocationOnScreen())));
+		if (!inPracticeMode || counter >= 5) entries.add(new Entry(allTrials.get(counter - 1), answer, totalDistance / totalTimeSteps, System.currentTimeMillis() - startTime, counter, currentGazeDataSet, new Tuple(this.getGCanvas().getLocationOnScreen())));
 	}
 	
 	private void addTarget () {
@@ -424,10 +424,10 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	
 	public void keyPressed (KeyEvent e) {
 		if (e.getKeyCode() == KeyEvent.VK_Z || e.getKeyCode() == KeyEvent.VK_Y) {
-			nextRound(0);
+			addEntry(0);
 		}
 		if (e.getKeyCode() == KeyEvent.VK_X || e.getKeyCode() == KeyEvent.VK_N) {
-			nextRound(1);
+			addEntry(1);
 		}
 	}
 	
@@ -441,10 +441,32 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		pauseBank += System.currentTimeMillis() - pauseStart;
 	}
 	
+	private void createTemporaryDuplicateLabelForDuration (GLabel label, String s, double duration) {
+		GLabel temp = new GLabel(s);
+		temp.setLocation(APPLICATION_WIDTH - TrackerConstants.RECOMMENDER_BUFFER * 2, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM + TrackerConstants.RECOMMENDER_BUFFER);
+		temp.setFont(label.getFont());
+		add(temp);
+		this.repaint();
+		double start = System.currentTimeMillis();
+		while (System.currentTimeMillis() - start < duration) {
+			if (System.currentTimeMillis() % 1000 == 0) System.out.print("");
+		}
+		remove(temp);
+	}
+	
+	private void countdown () {	
+		createTemporaryDuplicateLabelForDuration(trialNumber, "Ready", 500);
+		createTemporaryDuplicateLabelForDuration(trialNumber, "Set", 500);
+		createTemporaryDuplicateLabelForDuration(trialNumber, "Go!", 500);
+	}
+	
 	private void incrementTrialNumber () {
 		if (!inPracticeMode || (counter >= 5 && counter < 13)) {
 			pause();
 			displayRoundFeedback();
+			if (counter % 5 != 0 || inPracticeMode) {
+				countdown();
+			}
 			unpause();
 		}
 		if (!inPracticeMode && counter == TrackerConstants.TRIAL_COUNT) {
@@ -455,6 +477,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		if (!inPracticeMode && counter % 5 == 0) {
 			pause(); //pause the tracker
 			displayAndLogPolls();
+			countdown();
 			unpause();
 		}
 		counter++;
@@ -476,11 +499,11 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	private void nextRound (int answer) { //0: spotted enemy, 1: all clear, -1: no answer
-		pauseBank = 0;
 		if (!inPracticeMode || counter >= 5) addEntry(answer);
 		else entries.joystickControl = totalDistance / totalTimeSteps;
 		incrementTrialNumber();
 		putRandomImages();
+		pauseBank = 0;
 		startTime = System.currentTimeMillis();
 		totalTimeSteps = 0;
 		totalDistance = 0;
@@ -488,6 +511,13 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	
 	private void moveCursorSwarm (double x, double y) {
 		for (GLine g : cursorSwarm) {
+			//BOUNDS CHECK
+			if (g.getStartPoint().getY() > APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM || g.getStartPoint().getX() < TrackerConstants.SCREEN_DIVISION_X) {
+				g.setVisible(false);
+			}
+			if (g.getStartPoint().getY() < APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM && g.getStartPoint().getX() > TrackerConstants.SCREEN_DIVISION_X) {
+				g.setVisible(true);
+			}
 			g.move(x, y);
 		}
 	}
