@@ -30,6 +30,7 @@ public class AudioPlayer implements LineListener {
     }
     
     public void play(String audioFilePath) {
+    	if (audioFilePath == null) return; //ONLY FOR THE FIRST FOUR PRACTICE RUNS
         File audioFile = new File(audioFilePath);
         try {
             audioStream = AudioSystem.getAudioInputStream(audioFile);

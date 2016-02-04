@@ -47,8 +47,8 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	public DataAggregator entries;
 	private GLabel trialNumber;
 	private Physics p;
-	private double reliability; //important!!!
-	private boolean isBinaryAlarm; //important!!!
+	private double reliability = 70; //important!!!
+	private boolean isBinaryAlarm = true; //important!!!
 	private boolean running = false;
 	private JButton toPractice;
 	private boolean inPracticeMode = true;
@@ -57,7 +57,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private GLabel otherPracticeTip;
 	private Tuple mousePos;
 	private Controller joystick;
-	private ArrayList<Trial> allTrials;
+	private ArrayList<Trial> allTrials = new ArrayList<Trial>();
 	private double startTime;
 	private ArrayList<GLine> cursorSwarm;
 	private double totalDistance = 0;
@@ -67,16 +67,30 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private ArrayList<GazeData> currentGazeDataSet = new ArrayList<GazeData>();
 	private double pauseStart;
 	private double pauseBank = 0;
+	private boolean isControlRun = false;
 	
-	//TODO: give feedback as to whether the user is correct or not
+	//TODO: add control run
+	//TODO: normalize number of practice trials and record 
 	
 	public static void main (String[] args) {
 		new Tracker().start();
 	}
 	
-	public void init () {
+	public void init () {	
+		initializeControllers();
+		String[] stringForm = new String[TrackerConstants.AUTOMATION_CORRECT_PERCENTAGES.length];
+		for (int i = 0; i < stringForm.length; i++) {
+			stringForm[i] = Double.toString((int)(TrackerConstants.AUTOMATION_CORRECT_PERCENTAGES[i] * 100));
+		}
+		fileName = (String)JOptionPane.showInputDialog(this, "File name (no extension):", "Setup", JOptionPane.PLAIN_MESSAGE, null, null, null);
+		isControlRun = (JOptionPane.showConfirmDialog(this, "Is this a control run?", "Setup", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION);
+		if (!isControlRun) {
+			reliability = Double.parseDouble((String)JOptionPane.showInputDialog(this, "Reliability:", "Setup", JOptionPane.PLAIN_MESSAGE, null, stringForm, null));
+			String[] alarmTypeOptions = new String[] {"Binary alarm", "Likelihood alarm"};
+			isBinaryAlarm = ((String)JOptionPane.showInputDialog(this, "Alarm type:", "Setup", JOptionPane.PLAIN_MESSAGE, null, alarmTypeOptions, null)).equals(alarmTypeOptions[0]);
+		}
 		try {
-			Scanner fin = new Scanner(new BufferedReader(new FileReader(isBinaryAlarm ? "practiceText" : "likelihoodPracticeText")));
+			Scanner fin = new Scanner(new BufferedReader(new FileReader(isControlRun ? "controlPracticeText" : isBinaryAlarm ? "practiceText" : "likelihoodPracticeText")));
 			while (fin.hasNextLine()) {
 				practiceText.add(fin.nextLine());
 			}
@@ -86,15 +100,6 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		catch (IOException e) {
 			e.printStackTrace();
 		}
-		initializeControllers();
-		String[] stringForm = new String[TrackerConstants.AUTOMATION_CORRECT_PERCENTAGES.length];
-		for (int i = 0; i < stringForm.length; i++) {
-			stringForm[i] = Double.toString((int)(TrackerConstants.AUTOMATION_CORRECT_PERCENTAGES[i] * 100));
-		}
-		fileName = (String)JOptionPane.showInputDialog(this, "File name (no extension):", "Setup", JOptionPane.PLAIN_MESSAGE, null, null, null);
-		reliability = Double.parseDouble((String)JOptionPane.showInputDialog(this, "Reliability:", "Setup", JOptionPane.PLAIN_MESSAGE, null, stringForm, null));
-		String[] alarmTypeOptions = new String[] {"Binary alarm", "Likelihood alarm"};
-		isBinaryAlarm = ((String)JOptionPane.showInputDialog(this, "Alarm type:", "Setup", JOptionPane.PLAIN_MESSAGE, null, alarmTypeOptions, null)).equals(alarmTypeOptions[0]);
 		initScreen();
 	}
 	
@@ -104,11 +109,11 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		
 		automationRecommendation = new GRect(TrackerConstants.SCREEN_DIVISION_X + (APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X) / 2 + TrackerConstants.RECOMMENDER_BUFFER, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM + TrackerConstants.RECOMMENDER_BUFFER, (APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X) / 2 - TrackerConstants.RECOMMENDER_BUFFER * 2, TrackerConstants.TRACKER_AREA_BOTTOM - TrackerConstants.RECOMMENDER_BUFFER * 2);
 		automationRecommendation.setFilled(true);
+		automationRecommendation.setColor(Color.WHITE);
 		add(automationRecommendation);
 		
 		imagesToUse = new ArrayList<GImage>();
 		
-		loadImages();
 		putRandomImages();
 		
 		tracker = new GRect(TrackerConstants.SCREEN_DIVISION_X, 0, APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM);
@@ -139,7 +144,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private void initializeControllers() {
 		ControllerEnvironment ce = ControllerEnvironment.getDefaultEnvironment(); 
 		Controller[] cs = ce.getControllers();
-		joystick = cs[TrackerConstants.JOYSTICK_INPUT_NUMBER]; //SUBJECT TO CHANGE.
+		//joystick = cs[TrackerConstants.JOYSTICK_INPUT_NUMBER]; //SUBJECT TO CHANGE.
 	}
 	
 	private void addTrialLabels () {
@@ -250,16 +255,53 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}*/
 	
 	private void loadPracticeImages () throws IOException {
-		Scanner fin = new Scanner(new BufferedReader(new FileReader(isBinaryAlarm ? "practiceImageSets.txt": "likelihoodPracticeImageSets.txt")));
-		ArrayList<GImage> temp;
+		Scanner fin = new Scanner(new BufferedReader(new FileReader("practiceImageSets.txt")));
 		String[] splitted;
-		while (fin.hasNextLine()) {
-			temp = new ArrayList<GImage>();
+		Trial temp;
+		for (int i = 0; fin.hasNextLine(); i++) {
+			temp = new Trial();
 			splitted = fin.nextLine().split(" ");
+			temp.containsEnemy = false;
 			for (String s : splitted) {
-				temp.add(new GImage("Picture for practice/" + s + ".png"));
+				if (s.contains("P")) temp.containsEnemy = true;
+				temp.add("Picture for practice/" + s + ".png");
 			}
-			practiceImages.add(temp);
+			if (isControlRun) { //everything here is hardcoded. this may be inefficient, but i hope it isn't modified too often
+				temp.color = Color.WHITE;
+				temp.clip = null;
+			}
+			else if (isBinaryAlarm) {
+				temp.color = Color.GREEN;
+				temp.clip = null;
+				if (i == 5 || i == 7 || i == 9 || i == 11) {
+					temp.color = Color.RED;
+					temp.clip = "Danger.wav";
+				}
+				else if (i == 6 || i == 8 || i == 10 || i == 12) {
+					temp.clip = "clear.wav";
+				}
+			}
+			else {
+				temp.color = Color.GREEN;
+				temp.clip = null;
+				if (i == 5 || i == 7) {
+					temp.color = Color.RED;
+					temp.clip = "Danger.wav";
+				}
+				if (i == 6 || i == 8) {
+					temp.color = Color.GREEN;
+					temp.clip = "clear.wav";
+				}
+				if (i == 9 || i == 11) {
+					temp.color = QuotaSet.LIKELIHOOD_COLORS[1];
+					temp.clip = "warning.wav";
+				}
+				if (i == 10 || i == 12) {
+					temp.color = QuotaSet.LIKELIHOOD_COLORS[2];
+					temp.clip = "Caution.wav";
+				}
+			}
+			allTrials.add(temp);
 		}
 		fin.close();
 	}
@@ -268,7 +310,8 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		imagesToUse = new ArrayList<GImage>(practiceImages.get(counter));
 		Collections.shuffle(imagesToUse);
 		addImagesToCanvas();
-		if (counter == 5 || counter == 7) {
+		if (isControlRun) return;
+		if (counter == 5 || counter == 7 || ((counter == 9 || counter == 11) && isBinaryAlarm)) {
 			automationRecommendation.setColor(Color.RED);
 			audio.play("Danger.wav");
 			audio = new AudioPlayer();
@@ -284,7 +327,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 			audio = new AudioPlayer();
 		}
 		else {
-			if (counter == 6 || counter == 8) {
+			if (counter == 6 || counter == 8 || ((counter == 10 || counter == 12) && isBinaryAlarm)) {
 				audio.play("clear.wav");
 				audio = new AudioPlayer();
 			}
@@ -296,19 +339,22 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		for (GImage im : imagesToUse) {
 			this.remove(im);
 		}
-		if (inPracticeMode) {
+		/*if (inPracticeMode) {
 			getPracticeImages();
 			return;
-		}
+		}*/
+		if (counter == 0) return;
 		Trial t = allTrials.get(counter - 1);
 		imagesToUse = new ArrayList<GImage>();
 		for (String s : t.imageSet) {
 			imagesToUse.add(new GImage(s));
 		}
 		addImagesToCanvas();
-		automationRecommendation.setColor(t.color);
-		audio.play(t.clip);
-		audio = new AudioPlayer();
+		if (!isControlRun) {
+			automationRecommendation.setColor(t.color);
+			audio.play(t.clip);
+			audio = new AudioPlayer();
+		}
 		/*imagesToUse = new ArrayList<GImage>();
 		noEnemy = (Math.random() < TrackerConstants.NO_ENEMY_PROPORTION);
 		int noEnemyImageCount = noEnemy ? 4 : 3;
@@ -366,10 +412,10 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	public void mouseMoved (MouseEvent e) {
-		if (mousePos != null) {
+		/*if (mousePos != null) {
 			p.mouseDiff = new Tuple(e.getX() - mousePos.x, e.getY() - mousePos.y);
 		}
-		mousePos = new Tuple(e.getX(), e.getY());
+		mousePos = new Tuple(e.getX(), e.getY());*/
 	}
 	
 	private void moveJoystick (double x, double y) {
@@ -396,7 +442,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	private void incrementTrialNumber () {
-		if (!inPracticeMode) {
+		if (!inPracticeMode || (counter >= 5 && counter < 13)) {
 			pause();
 			displayRoundFeedback();
 			unpause();
@@ -412,9 +458,11 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 			unpause();
 		}
 		counter++;
-		if (counter >= (isBinaryAlarm ? 10:14) && inPracticeMode) {
+		if (counter >= 14 && inPracticeMode) {
 			inPracticeMode = false;
 			counter = 1;
+			entries = new DataAggregator(startTime, fileName, reliability, isBinaryAlarm);
+			loadImages();
 		}
 		if (inPracticeMode) {
 			trialNumber.setLabel(practiceText.get(counter * 2));
@@ -424,12 +472,12 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 			trialNumber.setLabel("Trial " + counter + "/" + TrackerConstants.TRIAL_COUNT);
 			otherPracticeTip.setLabel("Score: " + formatScore(entries.getScore(), false) + "/" + 15 * counter);
 			this.currentGazeDataSet = new ArrayList<GazeData>();
-		}
+		} 
 	}
 	
 	private void nextRound (int answer) { //0: spotted enemy, 1: all clear, -1: no answer
 		pauseBank = 0;
-		if (!inPracticeMode) addEntry(answer);
+		if (!inPracticeMode || counter >= 5) addEntry(answer);
 		else entries.joystickControl = totalDistance / totalTimeSteps;
 		incrementTrialNumber();
 		putRandomImages();
@@ -529,8 +577,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	
 	private void displayRoundFeedback () {
 		Entry last = entries.getMostRecentEntry();
-		JOptionPane.showMessageDialog(this, "Detector recommendation: " + 
-				getRecommendationString(last.t.color) + "\n" +
+		JOptionPane.showMessageDialog(this, (isControlRun ? "" : "Detector recommendation: " + getRecommendationString(last.t.color) + "\n") +
 				"Your identification: " + 
 				(last.identifiedEnemy ? "DANGER" : "CLEAR") + "\n" + 
 				"You are " + (last.identifiedEnemy == last.t.containsEnemy ? "correct!" : "incorrect.") + "\n" + 
@@ -584,8 +631,8 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 				/*if (System.currentTimeMillis() % 1000 == 0)
 					seed = Math.random();*/
 				if (System.currentTimeMillis() % 40 == 0) {
-					joystick.poll();
-					moveJoystick(joystick.getComponents()[12].getPollData(), joystick.getComponents()[13].getPollData());
+					//joystick.poll(); TODO: i just want to find this
+					//moveJoystick(joystick.getComponents()[12].getPollData(), joystick.getComponents()[13].getPollData());
 					move = p.computeMove();
 					moveCursorSwarm(move.x, move.y);
 					entries.addTrackerEntry(new TrackerEntry(counter, p.cursor, p.mouseDiff));
