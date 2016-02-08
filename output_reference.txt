@@ -13,7 +13,7 @@ detection task columns:
 7. time elapsed (ms)
 8. detection score change
 9. tracking task score change
-10 - 14. percentage dwell
+10 - 14. percentage dwell (0, 1, 2, 3 enumerated like column 4, then 4 is tracker area, 5 is elsewhere)
 15. first fixation
 16 - 20. fixation duration
 
@@ -32,3 +32,11 @@ tracker output:
 4. joystick y
 5. cursor x (relative to origin)
 6. cursor y (relative to origin)
+
+eye output:
+
+1. Trial number
+2. relative start time
+3. isFixated
+4. smoothed x (relative to the window's position on the screen)
+5. smoothed y

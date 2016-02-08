@@ -57,7 +57,7 @@ public class DataAggregator {
 			PrintWriter fout = new PrintWriter(new FileWriter(fileNameBase + "eye_output.txt"));
 			for (Entry e : entryList) {
 				for (GazeData g : e.eyeData) {
-					fout.println(e.trialNumber + " " + (e.absoluteStartTime - this.totalStartTime) + " " + g.isFixated + " " + g.smoothedCoordinates);
+					fout.println(e.trialNumber + " " + (e.absoluteStartTime - this.totalStartTime) + " " + g.isFixated + " " + new Tuple(g.smoothedCoordinates.x, g.smoothedCoordinates.y).add(e.canvasPosOnScreen.scalarMultiple(-1)));
 				}
 			}
 			fout.close();
