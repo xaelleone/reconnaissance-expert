@@ -9,7 +9,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Dictionary;
 import java.util.Hashtable;
 import java.util.Scanner;
@@ -23,6 +22,10 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import com.theeyetribe.client.GazeManager;
+import com.theeyetribe.client.GazeManager.ApiVersion;
+import com.theeyetribe.client.GazeManager.ClientMode;
+import com.theeyetribe.client.IGazeListener;
 import com.theeyetribe.client.data.GazeData;
 
 import acm.graphics.GImage;
@@ -105,7 +108,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	
 	private void initMainScreen () {
 		this.removeAll();
-		entries = new DataAggregator(startTime, fileName, reliability, isBinaryAlarm);
+		entries = new DataAggregator(startTime, fileName, reliability, isBinaryAlarm, isControlRun);
 		
 		automationRecommendation = new GRect(TrackerConstants.SCREEN_DIVISION_X + (APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X) / 2 + TrackerConstants.RECOMMENDER_BUFFER, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM + TrackerConstants.RECOMMENDER_BUFFER, (APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X) / 2 - TrackerConstants.RECOMMENDER_BUFFER * 2, TrackerConstants.TRACKER_AREA_BOTTOM - TrackerConstants.RECOMMENDER_BUFFER * 2);
 		automationRecommendation.setFilled(true);
@@ -483,22 +486,22 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 			}
 			unpause();
 		}
-		if (!inPracticeMode && counter == TrackerConstants.TRIAL_COUNT) {
-			running = false;
-			entries.printOutput();
-			this.exit();
-		}
 		if (!inPracticeMode && counter % 5 == 0) {
 			pause(); //pause the tracker
 			displayAndLogPolls();
 			countdown();
 			unpause();
 		}
+		if (!inPracticeMode && counter == TrackerConstants.TRIAL_COUNT) {
+			running = false;
+			entries.printOutput();
+			this.exit();
+		}
 		counter++;
 		if (counter >= 14 && inPracticeMode) {
 			inPracticeMode = false;
 			counter = 1;
-			entries = new DataAggregator(startTime, fileName, reliability, isBinaryAlarm);
+			entries = new DataAggregator(startTime, fileName, reliability, isBinaryAlarm, isControlRun);
 			loadImages();
 		}
 		if (inPracticeMode) {
@@ -637,7 +640,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 				practice();
 			}
 		});
-		/*final GazeManager gm = GazeManager.getInstance();
+		final GazeManager gm = GazeManager.getInstance();
         boolean success = gm.activate(ApiVersion.VERSION_1_0, ClientMode.PUSH);
         final IGazeListener listener = new IGazeListener () {
         	@Override
@@ -647,7 +650,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
         		 * // cursor.setLocation(gazeData.smoothedCoordinates.x - this.getGCanvas().getLocationOnScreen().x, gazeData.smoothedCoordinates.y - this.getGCanvas().getLocationOnScreen().y);
  -        		if (gazeData.smoothedCoordinates.x - this.getGCanvas().getLocationOnScreen().x < TrackerConstants.SCREEN_DIVISION_X) leftCount++;
  -        		totalTimeSteps++;
-        		 
+        		 */
         		currentGazeDataSet.add(gazeData);
             }
         };
@@ -660,7 +663,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
                 gm.removeGazeListener(listener);
                 gm.deactivate();
             }
-        });*/
+        });
 		startTime = System.currentTimeMillis();	
 		Tuple move;
 		boolean initialized = false;
@@ -680,7 +683,6 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 					moveJoystick(joystick.getComponents()[12].getPollData(), joystick.getComponents()[13].getPollData());
 					move = p.computeMove();
 					moveCursorSwarm(move.x, move.y);
-					entries.addTrackerEntry(new TrackerEntry(counter, p.cursor, p.mouseDiff));
 					totalDistance += p.cursor.distance(new Tuple(0, 0));
 					totalTimeSteps++;
 					/*currentTime = System.currentTimeMillis() / 200d / Math.PI;
@@ -689,6 +691,9 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 					lastAngle += seed / 1500d;*/
 					//if (cursor.getX() + cursor.getWidth() < TrackerConstants.SCREEN_DIVISION_X && cursor.isVisible()) cursor.setVisible(false);
 				}	
+				if (System.currentTimeMillis() % 200 == 0) {
+					entries.addTrackerEntry(new TrackerEntry(counter, p.cursor, p.mouseDiff)); //seldom do this
+				}
 				if (System.currentTimeMillis() % 10 == 0) {
 					timer.setLabel("Time left: " + Double.toString((int)(100 * (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime - pauseBank)) / 1000d) / 100d));
 					if (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime - pauseBank) <= 0) {

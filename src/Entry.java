@@ -97,6 +97,15 @@ public class Entry {
 		return 2 * bottom + right;
 	}
 	
+	public String getRecommendationString () {
+		for (int i = 0; i < QuotaSet.RECOMMENDATION_STRINGS.length; i++) {
+			if (t.color == QuotaSet.LIKELIHOOD_COLORS[i]) {
+				return QuotaSet.RECOMMENDATION_STRINGS[i];
+			}
+		}
+		return "???"; //unclear what occurred
+	}
+	
 	/*public boolean enemyContained;
 	public boolean automationRecommendedEnemy;
 	public boolean subjectIdentifiedEnemy;

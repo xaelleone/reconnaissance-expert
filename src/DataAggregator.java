@@ -14,8 +14,9 @@ public class DataAggregator {
 	public String fileNameBase;
 	public double reliability;
 	public boolean isBinaryAlarm;
+	public boolean isControl;
 	
-	public DataAggregator (double startTime, String file, double r, boolean binary) {
+	public DataAggregator (double startTime, String file, double r, boolean binary, boolean control) {
 		fileNameBase = file;
 		entryList = new ArrayList<Entry>();
 		pollResults = new ArrayList<PollResult>();
@@ -23,11 +24,12 @@ public class DataAggregator {
 		totalStartTime = startTime;
 		reliability = r;
 		isBinaryAlarm = binary;
+		isControl = control;
 		modifyFileNameBase();
 	}
 	
 	public void modifyFileNameBase () {
-		fileNameBase += "_" + (isBinaryAlarm ? "b" : "l") + "_" + Integer.toString((int)(reliability * 100)) + "_";
+		fileNameBase += "_" + (isControl ? "c" : (isBinaryAlarm ? "b" : "l") + "_" + Integer.toString((int)(reliability * 100))) + "_";
 	}
 	
 	public void add (Entry e) {
@@ -55,7 +57,7 @@ public class DataAggregator {
 			PrintWriter fout = new PrintWriter(new FileWriter(fileNameBase + "eye_output.txt"));
 			for (Entry e : entryList) {
 				for (GazeData g : e.eyeData) {
-					fout.println(g.isFixated + " " + g.smoothedCoordinates);
+					fout.println(e.trialNumber + " " + (e.absoluteStartTime - this.totalStartTime) + " " + g.isFixated + " " + g.smoothedCoordinates);
 				}
 			}
 			fout.close();
@@ -106,16 +108,17 @@ public class DataAggregator {
 						(e.absoluteStartTime - this.totalStartTime) + " " + 
 						e.t.containsEnemy + " " + 
 						e.t.targetLocation() + " " + 
+						e.getRecommendationString() + " " + 
 						e.identifiedEnemy + " " + 
 						e.timeSpent + " " + 
 						e.getTrackerScore() + " " + 
 						e.getDetectionScore() + " ");
 				for (double d : e.percentageDwell()) {
-					fout.println(d + " ");
+					fout.print(d + " ");
 				}
-				fout.println(e.firstFixation() + " ");
+				fout.print(e.firstFixation() + " ");
 				for (double d : e.fixationDuration()) {
-					fout.println(d + " ");
+					fout.print(d + " ");
 				}
 				fout.println();
 			}
