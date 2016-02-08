@@ -144,7 +144,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private void initializeControllers() {
 		ControllerEnvironment ce = ControllerEnvironment.getDefaultEnvironment(); 
 		Controller[] cs = ce.getControllers();
-		//joystick = cs[TrackerConstants.JOYSTICK_INPUT_NUMBER]; //SUBJECT TO CHANGE.
+		joystick = cs[TrackerConstants.JOYSTICK_INPUT_NUMBER]; //SUBJECT TO CHANGE.
 	}
 	
 	private void addTrialLabels () {
@@ -273,32 +273,32 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 			else if (isBinaryAlarm) {
 				temp.color = Color.GREEN;
 				temp.clip = null;
-				if (i == 5 || i == 7 || i == 9 || i == 11) {
+				if (i == 4 || i == 6 || i == 8 || i == 10) {
 					temp.color = Color.RED;
-					temp.clip = "Danger.wav";
+					temp.clip = "sounds/danger.wav";
 				}
-				else if (i == 6 || i == 8 || i == 10 || i == 12) {
-					temp.clip = "clear.wav";
+				else if (i == 5 || i == 7 || i == 9 || i == 11) {
+					temp.clip = "sounds/clear.wav";
 				}
 			}
 			else {
 				temp.color = Color.GREEN;
 				temp.clip = null;
-				if (i == 5 || i == 7) {
+				if (i == 4 || i == 6) {
 					temp.color = Color.RED;
-					temp.clip = "Danger.wav";
+					temp.clip = "sounds/danger.wav";
 				}
-				if (i == 6 || i == 8) {
+				if (i == 5 || i == 7) {
 					temp.color = Color.GREEN;
-					temp.clip = "clear.wav";
+					temp.clip = "sounds/clear.wav";
+				}
+				if (i == 8 || i == 10) {
+					temp.color = QuotaSet.LIKELIHOOD_COLORS[1];
+					temp.clip = "sounds/caution.wav";
 				}
 				if (i == 9 || i == 11) {
-					temp.color = QuotaSet.LIKELIHOOD_COLORS[1];
-					temp.clip = "warning.wav";
-				}
-				if (i == 10 || i == 12) {
 					temp.color = QuotaSet.LIKELIHOOD_COLORS[2];
-					temp.clip = "Caution.wav";
+					temp.clip = "sounds/possible.wav";
 				}
 			}
 			allTrials.add(temp);
@@ -424,9 +424,13 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	
 	public void keyPressed (KeyEvent e) {
 		if (e.getKeyCode() == KeyEvent.VK_Z || e.getKeyCode() == KeyEvent.VK_Y) {
+			audio.play("sounds/ack.wav");
+			audio = new AudioPlayer();
 			addEntry(0);
 		}
 		if (e.getKeyCode() == KeyEvent.VK_X || e.getKeyCode() == KeyEvent.VK_N) {
+			audio.play("sounds/ack.wav");
+			audio = new AudioPlayer();
 			addEntry(1);
 		}
 	}
@@ -455,6 +459,8 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	private void countdown () {	
+		audio.play("sounds/ready.wav");
+		audio = new AudioPlayer();
 		createTemporaryDuplicateLabelForDuration(trialNumber, "Ready", 500);
 		createTemporaryDuplicateLabelForDuration(trialNumber, "Set", 500);
 		createTemporaryDuplicateLabelForDuration(trialNumber, "Go!", 500);
@@ -463,6 +469,14 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private void incrementTrialNumber () {
 		if (!inPracticeMode || (counter >= 5 && counter < 13)) {
 			pause();
+			if (entries.getMostRecentEntry().getScore() > 0) {
+				audio.play("sounds/goodjob.wav");
+				audio = new AudioPlayer();
+			}
+			else {
+				audio.play("sounds/lousyjob.wav");
+				audio = new AudioPlayer();
+			}
 			displayRoundFeedback();
 			if (counter % 5 != 0 || inPracticeMode) {
 				countdown();
@@ -652,6 +666,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		boolean initialized = false;
 		while (true) {
 			System.out.print(running?"":""); //it is unclear why this is required, but something needs to check the running variable
+			if (audio.playCompleted) audio.close();
 			if (running) {
 				if (!initialized) {
 					initialized = true;
@@ -661,8 +676,8 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 				/*if (System.currentTimeMillis() % 1000 == 0)
 					seed = Math.random();*/
 				if (System.currentTimeMillis() % 40 == 0) {
-					//joystick.poll(); TODO: i just want to find this
-					//moveJoystick(joystick.getComponents()[12].getPollData(), joystick.getComponents()[13].getPollData());
+					joystick.poll(); 
+					moveJoystick(joystick.getComponents()[12].getPollData(), joystick.getComponents()[13].getPollData());
 					move = p.computeMove();
 					moveCursorSwarm(move.x, move.y);
 					entries.addTrackerEntry(new TrackerEntry(counter, p.cursor, p.mouseDiff));
@@ -675,7 +690,6 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 					//if (cursor.getX() + cursor.getWidth() < TrackerConstants.SCREEN_DIVISION_X && cursor.isVisible()) cursor.setVisible(false);
 				}	
 				if (System.currentTimeMillis() % 10 == 0) {
-					if (audio.playCompleted) audio.close();
 					timer.setLabel("Time left: " + Double.toString((int)(100 * (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime - pauseBank)) / 1000d) / 100d));
 					if (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime - pauseBank) <= 0) {
 						nextRound(-1);

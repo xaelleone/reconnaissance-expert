@@ -1,4 +1,4 @@
-Danger.wav
-warning.wav
-Caution.wav
-clear.wav
+sounds/danger.wav
+sounds/caution.wav
+sounds/possible.wav
+sounds/clear.wav
