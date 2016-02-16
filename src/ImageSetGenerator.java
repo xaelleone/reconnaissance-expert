@@ -116,10 +116,10 @@ public class ImageSetGenerator {
 	private ArrayList<Trial> pickImages () {
 		ArrayList<Trial> presentOnly = pickImagesOfType(true);
 		ArrayList<Trial> absentOnly = pickImagesOfType(false);
-		for (Trial t : presentOnly) {
-			absentOnly.add(t);
+		for (Trial t : absentOnly) {
+			presentOnly.add(t);
 		}
-		return absentOnly;
+		return presentOnly;
 	}
 	
 	private ArrayList<Trial> pickImagesOfType (boolean present) {

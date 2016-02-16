@@ -36,6 +36,7 @@ public class Trial {
 		for (String s : imageSet) {
 			totalString += s + "\n";
 		}
+		totalString += Tracker.getRecommendationString(color);
 		return totalString;
 	}
 }

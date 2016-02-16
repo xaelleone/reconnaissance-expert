@@ -11,8 +11,9 @@ public class Entry {
 	public double absoluteStartTime;
 	public ArrayList<GazeData> eyeData;
 	public Tuple canvasPosOnScreen;
+	public boolean earlyJoystick;
 	
-	public Entry (Trial tr, int a, double meanDist, double time, int counter, ArrayList<GazeData> gazeData, Tuple canvas) {
+	public Entry (Trial tr, int a, double meanDist, double time, int counter, ArrayList<GazeData> gazeData, Tuple canvas, boolean noDetection) {
 		t = tr;
 		resolveAnswer (a);
 		meanDistance = meanDist;
@@ -21,6 +22,7 @@ public class Entry {
 		absoluteStartTime = System.currentTimeMillis();
 		eyeData = new ArrayList<GazeData>(gazeData);
 		canvasPosOnScreen = canvas;
+		earlyJoystick = noDetection;
 	}
 	
 	private void resolveAnswer (int a) {
@@ -36,6 +38,7 @@ public class Entry {
 	}
 	
 	public double getDetectionScore () {
+		if (earlyJoystick) return 0;
 		double score = 0;
 		if (identifiedEnemy == t.containsEnemy) {
 			score += 5;

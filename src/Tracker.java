@@ -73,6 +73,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private double pauseStart;
 	private double pauseBank = 0;
 	private boolean isControlRun = false;
+	private JButton close = new JButton("Close");
 	
 	//TODO: add control run
 	//TODO: normalize number of practice trials and record 
@@ -111,7 +112,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	
 	private void initMainScreen () {
 		this.removeAll();
-		entries = new DataAggregator(startTime, fileName, reliability, isBinaryAlarm, isControlRun);
+		entries = new DataAggregator(startTime, fileName, reliability, isBinaryAlarm, isControlRun, true);
 		
 		initRecommender();
 		
@@ -142,6 +143,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		p = new Physics();
 		
 		addTrialLabels();
+		this.add(close, 0, 0);
 	}
 	
 	private void initializeControllers() {
@@ -306,7 +308,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 				temp.clip = null;
 			}
 			else if (isBinaryAlarm) {
-				temp.color = Color.GREEN;
+				temp.color = QuotaSet.LIKELIHOOD_COLORS[3];
 				temp.clip = null;
 				if (i == 4 || i == 6 || i == 8 || i == 10) {
 					temp.color = Color.RED;
@@ -317,14 +319,14 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 				}
 			}
 			else {
-				temp.color = Color.GREEN;
+				temp.color = QuotaSet.LIKELIHOOD_COLORS[3];
 				temp.clip = null;
 				if (i == 4 || i == 6) {
 					temp.color = Color.RED;
 					temp.clip = "sounds/danger.wav";
 				}
 				if (i == 5 || i == 7) {
-					temp.color = Color.GREEN;
+					temp.color = QuotaSet.LIKELIHOOD_COLORS[3];
 					temp.clip = "sounds/clear.wav";
 				}
 				if (i == 8 || i == 10) {
@@ -428,7 +430,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	private void addEntry (int answer) {
-		if (!inPracticeMode || counter >= 5) entries.add(new Entry(allTrials.get(counter - 1), answer, inCircleSteps / totalTimeSteps, System.currentTimeMillis() - startTime, counter, currentGazeDataSet, new Tuple(this.getGCanvas().getLocationOnScreen())));
+		entries.add(new Entry(allTrials.get(counter - 1), answer, inCircleSteps * 1.0 / totalTimeSteps, System.currentTimeMillis() - startTime, counter, currentGazeDataSet, new Tuple(this.getGCanvas().getLocationOnScreen()), inPracticeMode && counter < 5));
 	}
 	
 	private void addTarget () {
@@ -504,7 +506,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	private void incrementTrialNumber () {
-		if (!inPracticeMode || (counter >= 5 && counter < 13)) {
+		if (!inPracticeMode || (counter >= 1 && counter < 13)) {
 			pause();
 			if (entries.getMostRecentEntry().getScore() > 0) {
 				audio.play("sounds/goodjob.wav");
@@ -528,19 +530,21 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		}
 		if (!inPracticeMode && counter == TrackerConstants.TRIAL_COUNT) {
 			running = false;
-			entries.printOutput();
+			entries.closeAll();
 			this.exit();
 		}
 		counter++;
 		if (counter >= 14 && inPracticeMode) {
 			inPracticeMode = false;
 			counter = 1;
-			entries = new DataAggregator(startTime, fileName, reliability, isBinaryAlarm, isControlRun);
+			entries = new DataAggregator(startTime, fileName, reliability, isBinaryAlarm, isControlRun, false);
 			loadImages();
 		}
 		if (inPracticeMode) {
-			trialNumber.setLabel(practiceText.get(counter * 2));
-			otherPracticeTip.setLabel(practiceText.get(counter * 2 + 1));
+			trialNumber.setLabel("Trial " + counter + "/" + 14);
+			otherPracticeTip.setLabel("Score: " + formatScore(entries.getScore(), false) + "/" + 15 * counter);
+			/*trialNumber.setLabel(practiceText.get(counter * 2));
+			otherPracticeTip.setLabel(practiceText.get(counter * 2 + 1));*/
 		}
 		else {
 			trialNumber.setLabel("Trial " + counter + "/" + TrackerConstants.TRIAL_COUNT);
@@ -550,7 +554,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	private void nextRound (int answer) { //0: spotted enemy, 1: all clear, -1: no answer
-		if (!inPracticeMode || counter >= 5) addEntry(answer);
+		if (!inPracticeMode || counter >= 1) addEntry(answer);
 		incrementTrialNumber();
 		putRandomImages();
 		pauseBank = 0;
@@ -659,7 +663,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	    return slider;
 	}
 	
-	private String getRecommendationString (Color c) {
+	public static String getRecommendationString (Color c) {
 		for (int i = 0; i < QuotaSet.LIKELIHOOD_COLORS.length; i++) {
 			if (c.equals(QuotaSet.LIKELIHOOD_COLORS[i])) {
 				return QuotaSet.RECOMMENDATION_STRINGS[i];
@@ -676,15 +680,19 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	
 	private void displayRoundFeedback () {
 		Entry last = entries.getMostRecentEntry();
-		JOptionPane.showMessageDialog(this, (isControlRun ? "" : "Detector recommendation: " + getRecommendationString(last.t.color) + "\n") +
+		JOptionPane.showMessageDialog(this, ((inPracticeMode && counter <= 4) ? "" : (isControlRun ? "" : "Detector recommendation: " + getRecommendationString(last.t.color) + "\n") +
 				"Your identification: " + 
 				(last.identifiedEnemy ? "DANGER" : "CLEAR") + "\n" + 
 				"You are " + (last.identifiedEnemy == last.t.containsEnemy ? "correct!" : "incorrect.") + "\n" + 
-				"Your detection score: " + formatScore(entries.getDetectionScore(), false) + " (" + formatScore(last.getDetectionScore(), true) + ") \n" +
+				"Your detection score: " + formatScore(entries.getDetectionScore(), false) + " (" + formatScore(last.getDetectionScore(), true) + ") \n") +
 				"Your tracker score: " + formatScore(entries.getTrackerScore(), false) + " (" + formatScore(last.getTrackerScore(), true) + ") \n",
 				"Results",
 				JOptionPane.PLAIN_MESSAGE
 		);
+	}
+	
+	private void closeProgram () {
+		this.exit();
 	}
 	
 	public void run () {
@@ -692,6 +700,14 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				practice();
+			}
+		});
+		close.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (entries != null)
+					entries.closeAll();
+				closeProgram();
 			}
 		});
 		final GazeManager gm = GazeManager.getInstance();
@@ -733,7 +749,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 				}				
 				/*if (System.currentTimeMillis() % 1000 == 0)
 					seed = Math.random();*/
-				if (System.currentTimeMillis() % 40 == 0) {
+				if (System.currentTimeMillis() % 30 == 0) {
 					joystick.poll(); 
 					moveJoystick(joystick.getComponents()[12].getPollData(), joystick.getComponents()[13].getPollData());
 					move = p.computeMove();
