@@ -1,6 +1,8 @@
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 
 import com.theeyetribe.client.data.GazeData;
@@ -15,6 +17,7 @@ public class DataAggregator {
 	public double reliability;
 	public boolean isBinaryAlarm;
 	public boolean isControl;
+	public NumberFormat f = new DecimalFormat("#0.00");
 	
 	public DataAggregator (double startTime, String file, double r, boolean binary, boolean control) {
 		fileNameBase = file;
@@ -57,7 +60,9 @@ public class DataAggregator {
 			PrintWriter fout = new PrintWriter(new FileWriter(fileNameBase + "eye_output.txt"));
 			for (Entry e : entryList) {
 				for (GazeData g : e.eyeData) {
-					fout.println(e.trialNumber + " " + (e.absoluteStartTime - this.totalStartTime) + " " + g.isFixated + " " + new Tuple(g.smoothedCoordinates.x, g.smoothedCoordinates.y).add(e.canvasPosOnScreen.scalarMultiple(-1)));
+					fout.println(e.trialNumber + " " + f.format(e.absoluteStartTime - this.totalStartTime) + " " + g.isFixated + " " + 
+							new Tuple(g.smoothedCoordinates.x, g.smoothedCoordinates.y).add(e.canvasPosOnScreen.scalarMultiple(-1)) + " " + 
+							new Tuple(g.leftEye.pupilSize, g.rightEye.pupilSize));
 				}
 			}
 			fout.close();
@@ -72,7 +77,7 @@ public class DataAggregator {
 			PrintWriter fout = new PrintWriter(new FileWriter(fileNameBase + "tracker_output.txt"));
 			for (TrackerEntry t : trackerData) {
 				fout.println(t.trialNumber + " " + 
-						(t.absoluteTime - this.totalStartTime) + " " + 
+						f.format(t.absoluteTime - this.totalStartTime) + " " + 
 						t.position + " " +
 						t.joystickPos);
 			}
@@ -111,14 +116,15 @@ public class DataAggregator {
 						e.getRecommendationString() + " " + 
 						e.identifiedEnemy + " " + 
 						e.timeSpent + " " + 
-						e.getTrackerScore() + " " + 
-						e.getDetectionScore() + " ");
+						f.format(e.getDetectionScore()) + " " +
+						f.format(e.getTrackerScore()) + " "
+						);
 				for (double d : e.percentageDwell()) {
-					fout.print(d + " ");
+					fout.print(f.format(d) + " ");
 				}
 				fout.print(e.firstFixation() + " ");
 				for (double d : e.fixationDuration()) {
-					fout.print(d + " ");
+					fout.print(f.format(d) + " ");
 				}
 				fout.println();
 			}

@@ -19,6 +19,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JSlider;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -45,7 +46,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private GLabel timer;
 	private GRect tracker;
 	private int counter = 0;
-	private GRect automationRecommendation;
+	private GRect[] automationRecommendation;
 	private ArrayList<GImage> imagesToUse;
 	public DataAggregator entries;
 	private GLabel trialNumber;
@@ -64,6 +65,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private double startTime;
 	private ArrayList<GLine> cursorSwarm;
 	private double totalDistance = 0;
+	private int inCircleSteps = 0;
 	private int totalTimeSteps = 0;
 	private AudioPlayer audio = new AudioPlayer();
 	private String fileName;
@@ -80,6 +82,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	public void init () {	
+		UIManager.put("OptionPane.messageFont", new Font("Arial", Font.PLAIN, 20));
 		initializeControllers();
 		String[] stringForm = new String[TrackerConstants.AUTOMATION_CORRECT_PERCENTAGES.length];
 		for (int i = 0; i < stringForm.length; i++) {
@@ -110,10 +113,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		this.removeAll();
 		entries = new DataAggregator(startTime, fileName, reliability, isBinaryAlarm, isControlRun);
 		
-		automationRecommendation = new GRect(TrackerConstants.SCREEN_DIVISION_X + (APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X) / 2 + TrackerConstants.RECOMMENDER_BUFFER, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM + TrackerConstants.RECOMMENDER_BUFFER, (APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X) / 2 - TrackerConstants.RECOMMENDER_BUFFER * 2, TrackerConstants.TRACKER_AREA_BOTTOM - TrackerConstants.RECOMMENDER_BUFFER * 2);
-		automationRecommendation.setFilled(true);
-		automationRecommendation.setColor(Color.WHITE);
-		add(automationRecommendation);
+		initRecommender();
 		
 		imagesToUse = new ArrayList<GImage>();
 		
@@ -199,6 +199,38 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		cursorSwarm.add(new GLine(loc.x - arm, loc.y, loc.x + arm, loc.y));
 		cursorSwarm.add(new GLine(loc.x, loc.y - arm, loc.x, loc.y + arm));
 		return cursorSwarm;
+	}
+	
+	private void initRecommender () {
+		automationRecommendation = new GRect[isBinaryAlarm ? 2 : 4];
+		int startX = TrackerConstants.SCREEN_DIVISION_X + (APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X) / 2 + TrackerConstants.RECOMMENDER_BUFFER;
+		int startY = APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM + TrackerConstants.RECOMMENDER_BUFFER;
+		int width = TrackerConstants.RECOMMENDER_BUFFER * 3 / automationRecommendation.length;
+		int height = TrackerConstants.RECOMMENDER_BUFFER;
+		Color c;
+		for (int i = 0; i < automationRecommendation.length; i++) {
+			automationRecommendation[i] = new GRect(startX, startY, width, height);
+			automationRecommendation[i].setFilled(true);
+			c = isControlRun ? Color.WHITE : isBinaryAlarm ? QuotaSet.BINARY_COLORS[i] : QuotaSet.LIKELIHOOD_COLORS[i];
+			automationRecommendation[i].setColor(modifyAlpha(c, TrackerConstants.INACTIVE_ALARM_ALPHA));
+			this.add(automationRecommendation[i]);
+			startX += width;
+		}
+	}
+	
+	private Color modifyAlpha (Color c, int alpha) {
+		return new Color(c.getRed(), c.getGreen(), c.getBlue(), alpha);
+	}
+	
+	private void changeColor (Color c) {
+		for (int i = 0; i < automationRecommendation.length; i++) {
+			if ((isBinaryAlarm && QuotaSet.BINARY_COLORS[i].equals(c)) || !isBinaryAlarm && QuotaSet.LIKELIHOOD_COLORS[i].equals(c)) {
+				automationRecommendation[i].setColor(modifyAlpha(automationRecommendation[i].getColor(), TrackerConstants.ACTIVE_ALARM_ALPHA));
+			}
+			else {
+				automationRecommendation[i].setColor(modifyAlpha(automationRecommendation[i].getColor(), TrackerConstants.INACTIVE_ALARM_ALPHA));
+			}
+		}
 	}
 	
 	private void initScreen () {
@@ -304,6 +336,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 					temp.clip = "sounds/possible.wav";
 				}
 			}
+			temp.shuffle();
 			allTrials.add(temp);
 		}
 		fin.close();
@@ -354,7 +387,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		}
 		addImagesToCanvas();
 		if (!isControlRun) {
-			automationRecommendation.setColor(t.color);
+			changeColor(t.color);
 			audio.play(t.clip);
 			audio = new AudioPlayer();
 		}
@@ -395,7 +428,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	private void addEntry (int answer) {
-		if (!inPracticeMode || counter >= 5) entries.add(new Entry(allTrials.get(counter - 1), answer, totalDistance / totalTimeSteps, System.currentTimeMillis() - startTime, counter, currentGazeDataSet, new Tuple(this.getGCanvas().getLocationOnScreen())));
+		if (!inPracticeMode || counter >= 5) entries.add(new Entry(allTrials.get(counter - 1), answer, inCircleSteps / totalTimeSteps, System.currentTimeMillis() - startTime, counter, currentGazeDataSet, new Tuple(this.getGCanvas().getLocationOnScreen())));
 	}
 	
 	private void addTarget () {
@@ -450,8 +483,9 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	
 	private void createTemporaryDuplicateLabelForDuration (GLabel label, String s, double duration) {
 		GLabel temp = new GLabel(s);
-		temp.setLocation(APPLICATION_WIDTH - TrackerConstants.RECOMMENDER_BUFFER * 2, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM + TrackerConstants.RECOMMENDER_BUFFER);
-		temp.setFont(label.getFont());
+		temp.setLocation(APPLICATION_WIDTH / 2 - TrackerConstants.RECOMMENDER_BUFFER * 2, APPLICATION_HEIGHT / 2 - TrackerConstants.RECOMMENDER_BUFFER * 2);
+		temp.setFont(new Font("Arial", Font.PLAIN, 120));
+		temp.setColor(Color.RED);
 		add(temp);
 		this.repaint();
 		double start = System.currentTimeMillis();
@@ -464,9 +498,9 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private void countdown () {	
 		audio.play("sounds/ready.wav");
 		audio = new AudioPlayer();
-		createTemporaryDuplicateLabelForDuration(trialNumber, "Ready", 500);
-		createTemporaryDuplicateLabelForDuration(trialNumber, "Set", 500);
-		createTemporaryDuplicateLabelForDuration(trialNumber, "Go!", 500);
+		createTemporaryDuplicateLabelForDuration(trialNumber, "READY", 500);
+		createTemporaryDuplicateLabelForDuration(trialNumber, "SET", 500);
+		createTemporaryDuplicateLabelForDuration(trialNumber, "GO!", 500);
 	}
 	
 	private void incrementTrialNumber () {
@@ -517,13 +551,13 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	
 	private void nextRound (int answer) { //0: spotted enemy, 1: all clear, -1: no answer
 		if (!inPracticeMode || counter >= 5) addEntry(answer);
-		else entries.joystickControl = totalDistance / totalTimeSteps;
 		incrementTrialNumber();
 		putRandomImages();
 		pauseBank = 0;
 		startTime = System.currentTimeMillis();
 		totalTimeSteps = 0;
 		totalDistance = 0;
+		inCircleSteps = 0;
 	}
 	
 	private void moveCursorSwarm (double x, double y) {
@@ -548,22 +582,32 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 			switch (i) {
 			case 0:
 				messages[0] = "How confident are you in completing the task without the detector?";
-				temp.put(0, new JLabel("Not confident at all"));
-				temp.put(100, new JLabel("Absolutely confident"));
+				temp.put(0, new JLabel("Not confident at all (0)"));
+				temp = addIntermediateValues(temp);
+				temp.put(100, new JLabel("Absolutely confident (100)"));
 				break;
 			case 1:
 				messages[1] = "How reliable are the automated detector's recommendations?";
-				temp.put(0,  new JLabel("Not reliable at all"));
-				temp.put(100,  new JLabel("Absolutely reliable"));
+				temp.put(0,  new JLabel("Not reliable at all (0)"));
+				temp = addIntermediateValues(temp);
+				temp.put(100,  new JLabel("Absolutely reliable (100)"));
 				break;
 			default:
 				messages[2] = "How much do you trust the automated detector's recommendations?";
-				temp.put(0, new JLabel("I don't trust it at all"));
-				temp.put(100, new JLabel("I absolutely trust it"));
+				temp.put(0, new JLabel("I don't trust it at all (0)"));
+				temp = addIntermediateValues(temp);
+				temp.put(100, new JLabel("I absolutely trust it (100)"));
 			}
 			labels.add(temp);
 		}
 		entries.addPollResult(displayPoll(messages, labels));
+	}
+	
+	private Dictionary<Integer, JLabel> addIntermediateValues (Dictionary<Integer, JLabel> dict) {
+		for (int i = 25; i <= 75; i+= 25) {
+			dict.put(i, new JLabel(Integer.toString(i)));
+		}
+		return dict;
 	}
 	
 	private PollResult displayPoll (String[] message, ArrayList<Dictionary<Integer, JLabel>> labels) {
@@ -573,11 +617,19 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		Object[] thingsOnOptionPane = new Object[TrackerConstants.NUM_POLLS * 2];
 		for (int i = 0; i < sliders.length; i++) {
 			sliders[i] = getSlider(optionPane, labels.get(i));
+			sliders[i].addChangeListener(new ChangeListener() {
+		        public void stateChanged(ChangeEvent ce) {
+		            JSlider slider = (JSlider)ce.getSource();
+		            if (!slider.getValueIsAdjusting()) {
+		                slider.setToolTipText(Integer.toString(slider.getValue()));
+		            }
+		        }
+		    });
 			thingsOnOptionPane[i * 2] = message[i];
 			thingsOnOptionPane[i * 2 + 1] = sliders[i];
 		}
 		optionPane.setMessage(thingsOnOptionPane);
-		optionPane.setMessageType(JOptionPane.QUESTION_MESSAGE);
+		optionPane.setMessageType(JOptionPane.PLAIN_MESSAGE);
 		optionPane.setOptionType(JOptionPane.OK_CANCEL_OPTION);
 		JDialog dialog = optionPane.createDialog(parent, "Question");
 		dialog.setVisible(true);
@@ -629,7 +681,9 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 				(last.identifiedEnemy ? "DANGER" : "CLEAR") + "\n" + 
 				"You are " + (last.identifiedEnemy == last.t.containsEnemy ? "correct!" : "incorrect.") + "\n" + 
 				"Your detection score: " + formatScore(entries.getDetectionScore(), false) + " (" + formatScore(last.getDetectionScore(), true) + ") \n" +
-				"Your tracker score: " + formatScore(entries.getTrackerScore(), false) + " (" + formatScore(last.getTrackerScore(), true) + ") \n"
+				"Your tracker score: " + formatScore(entries.getTrackerScore(), false) + " (" + formatScore(last.getTrackerScore(), true) + ") \n",
+				"Results",
+				JOptionPane.PLAIN_MESSAGE
 		);
 	}
 	
@@ -652,6 +706,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
  -        		totalTimeSteps++;
         		 */
         		currentGazeDataSet.add(gazeData);
+        	
             }
         };
         gm.addGazeListener(listener);
@@ -684,12 +739,13 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 					move = p.computeMove();
 					moveCursorSwarm(move.x, move.y);
 					totalDistance += p.cursor.distance(new Tuple(0, 0));
+					inCircleSteps += p.cursor.distance(new Tuple(0, 0)) > TrackerConstants.TARGET_SIZE ? 0 : 1;
 					totalTimeSteps++;
 					/*currentTime = System.currentTimeMillis() / 200d / Math.PI;
 					cursor.movePolar((Math.sin(currentTime) - Math.sin(lastTime)) * 40, lastAngle);
 					lastTime = System.currentTimeMillis() / 200d / Math.PI;
 					lastAngle += seed / 1500d;*/
-					//if (cursor.getX() + cursor.getWidth() < TrackerConstants.SCREEN_DIVISION_X && cursor.isVisible()) cursor.setVisible(false);
+					//if (cursor.getxX() + cursor.getWidth() < TrackerConstants.SCREEN_DIVISION_X && cursor.isVisible()) cursor.setVisible(false);
 				}	
 				if (System.currentTimeMillis() % 200 == 0) {
 					entries.addTrackerEntry(new TrackerEntry(counter, p.cursor, p.mouseDiff)); //seldom do this

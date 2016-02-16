@@ -49,7 +49,8 @@ public class Entry {
 	}
 	
 	public double getTrackerScore () {
-		return Math.min(Math.sqrt(1.0 * TrackerConstants.TARGET_SIZE / meanDistance), 1) * 10;
+		//return Math.min(Math.sqrt(1.0 * TrackerConstants.TARGET_SIZE / meanDistance), 1) * 10;
+		return meanDistance * 10; //mean distance is actually proportion that it is in the circle
 	}
 	
 	public double getScore () {
@@ -67,7 +68,7 @@ public class Entry {
 	public double firstFixation () {
 		for (GazeData g : eyeData) {
 			if (g.isFixated) {
-				return g.timeStamp - this.absoluteStartTime;
+				return 10000 + g.timeStamp - this.absoluteStartTime;
 			}
 		}
 		return 10000; //never fixated: what is wrong with your eyes?

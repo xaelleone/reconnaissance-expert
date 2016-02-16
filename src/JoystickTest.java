@@ -22,7 +22,7 @@ public class JoystickTest {
 		Controller[] cs = ce.getControllers(); 
 		for (int i = 0; i < cs.length; i++) 
 			System.out.println(i + ". " + cs[i].getName() + ", " + cs[i].getType() ); 
-		Component[] comps = cs[3].getComponents();
+		Component[] comps = cs[2].getComponents();
 		System.out.println("Components: (" + comps.length + ")");
 		for (int i = 0; i < comps.length; i++)
 			System.out.println( i + ". " +

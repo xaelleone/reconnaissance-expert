@@ -1,4 +1,6 @@
 import java.awt.Point;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 
 public class Tuple {
 	public double x;
@@ -31,6 +33,7 @@ public class Tuple {
 	}
 	
 	public String toString () {
-		return x + " " + y;
+		NumberFormat f = new DecimalFormat("#0.00");
+		return f.format(x) + " " + f.format(y);
 	}
 }

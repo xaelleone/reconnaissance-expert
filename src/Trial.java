@@ -30,4 +30,12 @@ public class Trial {
 		}
 		return -1;
 	}
+	
+	public String toString() {
+		String totalString = "";
+		for (String s : imageSet) {
+			totalString += s + "\n";
+		}
+		return totalString;
+	}
 }

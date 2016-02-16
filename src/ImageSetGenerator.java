@@ -19,6 +19,10 @@ public class ImageSetGenerator {
 	private PriorityQueue<AbsentImageBin> absentImages = new PriorityQueue<AbsentImageBin>();
 	private QuotaSet quotas;
 	
+	public static void main (String[] args) {
+		new ImageSetGenerator(true, 70).getImages();
+	}
+	
 	public ImageSetGenerator (boolean alarm, double r) {
 		isBinaryAlarm = alarm;
 		reliability = r;
@@ -28,6 +32,7 @@ public class ImageSetGenerator {
 	
 	public ArrayList<Trial> getImages () {
 		ArrayList<Trial> allTrials = assignColors(pickImages());
+		System.out.println(allTrials);
 		Collections.shuffle(allTrials);
 		return allTrials;
 	}
