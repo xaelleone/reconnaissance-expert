@@ -9,7 +9,7 @@ public class Physics {
 	public static final double A3 = 0.000010382;
 	public static final double A4 = 0.0016288; // these were arbitrarily changed from the paper
 	public static final double TIME_STEP = 2000;
-	public static final double ORIGIN_X = TrackerConstants.SCREEN_DIVISION_X + (Tracker.APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X) / 2;
+	public static final double ORIGIN_X = TrackerConstants.SCREEN_DIVISION_X + (Tracker.APPLICATION_WIDTH - TrackerConstants.RIGHT_BUFFER - TrackerConstants.SCREEN_DIVISION_X) / 2;
 	public static final double ORIGIN_Y = (Tracker.APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM) / 2;
 	public static final Tuple ORIGIN = new Tuple(ORIGIN_X, ORIGIN_Y);
 	

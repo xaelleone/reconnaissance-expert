@@ -42,7 +42,7 @@ import net.java.games.input.ControllerEnvironment;
 public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private static final long serialVersionUID = 1L;
 	public static final int APPLICATION_HEIGHT = 1000;
-	public static final int APPLICATION_WIDTH = 1800;
+	public static final int APPLICATION_WIDTH = 1800 + TrackerConstants.RIGHT_BUFFER;
 	private GLabel timer;
 	private GRect tracker;
 	private int counter = 0;
@@ -120,7 +120,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		
 		putRandomImages();
 		
-		tracker = new GRect(TrackerConstants.SCREEN_DIVISION_X, 0, APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM);
+		tracker = new GRect(TrackerConstants.SCREEN_DIVISION_X, 0, APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X - TrackerConstants.RIGHT_BUFFER, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM);
 		tracker.setFillColor(Color.BLACK);
 		tracker.setFilled(true);
 		add(tracker);
@@ -438,7 +438,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		double unit = TrackerConstants.TARGET_SIZE;
 		double sep = unit * 3d / 4;
 		Tuple o = Physics.ORIGIN;
-		shapes.add(new GOval(TrackerConstants.SCREEN_DIVISION_X + (APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X) / 2 - unit, (APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM) / 2 - unit, unit * 2, unit * 2));
+		shapes.add(new GOval(TrackerConstants.SCREEN_DIVISION_X + (APPLICATION_WIDTH - TrackerConstants.RIGHT_BUFFER - TrackerConstants.SCREEN_DIVISION_X) / 2 - unit, (APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM) / 2 - unit, unit * 2, unit * 2));
 		shapes.add(new GLine(o.x - sep, o.y, o.x - sep - unit / 2, o.y));
 		shapes.add(new GLine(o.x + sep, o.y, o.x + sep + unit / 2, o.y));
 		shapes.add(new GLine(o.x, o.y - sep, o.x, o.y - sep - unit / 2));
@@ -539,6 +539,13 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 			counter = 1;
 			entries = new DataAggregator(startTime, fileName, reliability, isBinaryAlarm, isControlRun, false);
 			loadImages();
+			pause();
+			JOptionPane.showMessageDialog(this, "The practice phase is over. You are about to begin the experiment.",
+					"End of practice",
+					JOptionPane.PLAIN_MESSAGE
+			);
+			countdown();
+			unpause();
 		}
 		if (inPracticeMode) {
 			trialNumber.setLabel("Trial " + counter + "/" + 14);

@@ -14,8 +14,10 @@ public class TrackerConstants {
 	
 	public static final int TARGET_SIZE = 30;
 	
-	public static final int INACTIVE_ALARM_ALPHA = 48;
+	public static final int INACTIVE_ALARM_ALPHA = 30;
 	public static final int ACTIVE_ALARM_ALPHA = 255;
+	
+	public static final int RIGHT_BUFFER = 25;
 	
 	public static final int JOYSTICK_INPUT_NUMBER = 2;
 	public static final int NUM_POLLS = 3;
