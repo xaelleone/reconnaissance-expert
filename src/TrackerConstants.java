@@ -19,14 +19,14 @@ public class TrackerConstants {
 	
 	public static final int JOYSTICK_INPUT_NUMBER = 2;
 	public static final int NUM_POLLS = 3;
-	public static final int SCREEN_DIVISION_X = 1000;
+	public static final int SCREEN_DIVISION_X = 1200;
 	public static final int TRACKER_AREA_BOTTOM = 200;
 	public static final int CURSOR_SIZE = 20;
 	public static final int TIMER_X = SCREEN_DIVISION_X + 30;
 	public static final int TIMER_Y = 30;
-	public static final int[][] IMAGE_POSITIONS = new int[][] {{25, 50}, {525, 50}, {25, 350}, {525, 350}};
-	public static final int IMAGE_WIDTH = 450;
-	public static final int IMAGE_HEIGHT = 250;
+	public static final int[][] IMAGE_POSITIONS = new int[][] {{25, 50}, {625, 50}, {25, 450}, {625, 450}};
+	public static final int IMAGE_WIDTH = 550;
+	public static final int IMAGE_HEIGHT = 350;
 	public static final int RECOMMENDER_BUFFER = 50;
 	public static final int LINE_HEIGHT = 30;
 	public static final int INIT_SCREEN_BUFFER = 100;

@@ -41,8 +41,8 @@ import net.java.games.input.ControllerEnvironment;
 
 public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private static final long serialVersionUID = 1L;
-	public static final int APPLICATION_HEIGHT = 800;
-	public static final int APPLICATION_WIDTH = 1600;
+	public static final int APPLICATION_HEIGHT = 1000;
+	public static final int APPLICATION_WIDTH = 1800;
 	private GLabel timer;
 	private GRect tracker;
 	private int counter = 0;
@@ -733,6 +733,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
             {
                 gm.removeGazeListener(listener);
                 gm.deactivate();
+                entries.closeAll();
             }
         });
 		startTime = System.currentTimeMillis();	
