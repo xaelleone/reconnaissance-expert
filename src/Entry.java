@@ -33,7 +33,7 @@ public class Entry {
 		}
 		else if (a == 1) {
 			identifiedEnemy = false;
-			outOfTime = true;
+			outOfTime = false;
 		}
 		else { //user is wrong no matter what
 			identifiedEnemy = !t.containsEnemy;

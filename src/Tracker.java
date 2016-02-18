@@ -508,6 +508,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private void incrementTrialNumber () {
 		if (!inPracticeMode || (counter >= 1 && counter < 13)) {
 			pause();
+			displayAndLogPolls(); //TODO: come back here and remove this
 			if (entries.getMostRecentEntry().getScore() > 0) {
 				audio.play("sounds/goodjob.wav");
 				audio = new AudioPlayer();
@@ -548,7 +549,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 			unpause();
 		}
 		if (inPracticeMode) {
-			trialNumber.setLabel("Trial " + counter + "/" + 14);
+			trialNumber.setLabel("Trial " + counter + "/" + 13);
 			otherPracticeTip.setLabel("Score: " + formatScore(entries.getScore(), false) + "/" + 15 * counter);
 			/*trialNumber.setLabel(practiceText.get(counter * 2));
 			otherPracticeTip.setLabel(practiceText.get(counter * 2 + 1));*/
@@ -591,23 +592,23 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		for (int i = 0; i < TrackerConstants.NUM_POLLS; i++) {
 			temp = new Hashtable<Integer, JLabel>();
 			switch (i) {
-			case 0:
+			case 0: //UGLY UGLY HOTFIX, WILL CHANGE EVENTUALLY
 				messages[0] = "How confident are you in completing the task without the detector?";
-				temp.put(0, new JLabel("0\nNot confident at all"));
+				temp.put(0, new JLabel("<html>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0<br>Not confident at all</html>"));
 				temp = addIntermediateValues(temp);
-				temp.put(100, new JLabel("100\nAbsolutely confident"));
+				temp.put(100, new JLabel("<html>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;100<br>Absolutely confident</html>"));
 				break;
 			case 1:
 				messages[1] = "How reliable are the automated detector's recommendations?";
-				temp.put(0,  new JLabel("0\nNot reliable at all"));
+				temp.put(0,  new JLabel("<html>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0<br>Not reliable at all</html>"));
 				temp = addIntermediateValues(temp);
-				temp.put(100,  new JLabel("100\nAbsolutely reliable"));
+				temp.put(100,  new JLabel("<html>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;100<br>Absolutely reliable</html>"));
 				break;
 			default:
 				messages[2] = "How much do you trust the automated detector's recommendations?";
-				temp.put(0, new JLabel("0\nI don't trust it at all"));
+				temp.put(0, new JLabel("<html>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0<br>I don't trust it at all</html>"));
 				temp = addIntermediateValues(temp);
-				temp.put(100, new JLabel("100\nI absolutely trust it"));
+				temp.put(100, new JLabel("<html>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;100<br>I absolutely trust it</html>"));
 			}
 			labels.add(temp);
 		}
@@ -628,6 +629,8 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		Object[] thingsOnOptionPane = new Object[TrackerConstants.NUM_POLLS * 2];
 		for (int i = 0; i < sliders.length; i++) {
 			sliders[i] = getSlider(optionPane, labels.get(i));
+			sliders[i].setMajorTickSpacing(10);
+			sliders[i].setPaintTicks(true);
 			sliders[i].addChangeListener(new ChangeListener() {
 		        public void stateChanged(ChangeEvent ce) {
 		            JSlider slider = (JSlider)ce.getSource();
@@ -687,12 +690,13 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	
 	private void displayRoundFeedback () {
 		Entry last = entries.getMostRecentEntry();
-		JOptionPane.showMessageDialog(this, ((inPracticeMode && counter <= 4) ? "" : (isControlRun ? "" : "Detector recommendation: " + getRecommendationString(last.t.color) + "\n") +
+		JOptionPane.showMessageDialog(this, new JLabel("<html><font size=5>" + ((inPracticeMode && counter <= 4) ? "" : (isControlRun ? "" : "Detector recommendation: " + getRecommendationString(last.t.color) + "<br>") +
 				(last.outOfTime ? "You ran out of time." : "Your identification: " + 
-				(last.identifiedEnemy ? "DANGER" : "CLEAR") + "\n" + 
-				"You are " + (last.identifiedEnemy == last.t.containsEnemy ? "<font color=green>CORRECT.</font>" : "<font color=green>INCORRECT.</font>")) + "\n" + 
-				"Your detection score: " + formatScore(entries.getDetectionScore(), false) + " (" + formatScore(last.getDetectionScore(), true) + ") \n") +
-				"Your tracker score: " + formatScore(entries.getTrackerScore(), false) + " (" + formatScore(last.getTrackerScore(), true) + ") \n",
+				(last.identifiedEnemy ? "DANGER" : "CLEAR") + "<br>" + 
+				"You are " + (last.identifiedEnemy == last.t.containsEnemy ? "<font color=green><b>CORRECT</b></font>." : "<font color=red><b>INCORRECT</b></font>")) + "<br>" + 
+				"Your detection score: " + formatScore(entries.getDetectionScore(), false) + " <b>(" + formatScore(last.getDetectionScore(), true) + ")</b> <br>") +
+				"Your tracker score: " + formatScore(entries.getTrackerScore(), false) + " <b>(" + formatScore(last.getTrackerScore(), true) + ")</b> <br>" +
+				"Total score: " + formatScore(entries.getScore(), false) + " <b>(" + formatScore(last.getScore(), true) + ")</b><br></font></html>"),
 				"Results",
 				JOptionPane.PLAIN_MESSAGE
 		);
@@ -770,7 +774,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 						else if (joystick.getComponents()[1].getPollData() > 0.5) { //button on the thumb
 							audio.play("sounds/ack.wav");
 							audio = new AudioPlayer();
-							pressedButton = false;
+							pressedButton = true;
 							addEntry(1);
 						}
 					}
