@@ -10,12 +10,13 @@ detection task columns:
 4. target location (-1 if absent, 0, 1, 2, 3, starting from top left and going right)
 5. alert given (DANGER, WARNING, CAUTION, CLEAR)
 6. response given (Y = present, N = absent)
-7. time elapsed (ms)
-8. detection score change
-9. tracking task score change
-10 - 14. percentage dwell (0, 1, 2, 3 enumerated like column 4, then 4 is tracker area, 5 is elsewhere)
-15. first fixation
-16 - 20. fixation duration
+7. ran out of time (true = ran out of time)
+8. time elapsed (ms)
+9. detection score change
+10. tracking task score change
+11 - 15. percentage dwell (0, 1, 2, 3 enumerated like column 4, then 4 is tracker area, 5 is elsewhere)
+16. first fixation
+17 - 21. fixation duration
 
 poll output:
 

@@ -40,14 +40,16 @@ public class DataAggregator {
 	
 	private void openAllFiles () {
 		try {
-			detectionOut = new PrintWriter(new FileWriter(fileNameBase + "detection_output.txt"));
-			eyeOut = new PrintWriter(new FileWriter(fileNameBase + "eye_output.txt"));
-			trackerOut = new PrintWriter(new FileWriter(fileNameBase + "tracker_output.txt"));
-			pollOut = new PrintWriter(new FileWriter(fileNameBase + "poll_output.txt"));
-			detectionOut.println(totalStartTime);
-			eyeOut.println(totalStartTime);
-			trackerOut.println(totalStartTime);
-			pollOut.println(totalStartTime);
+			if (!isPracticeRun) {
+				detectionOut = new PrintWriter(new FileWriter(fileNameBase + "detection_output.txt"));
+				eyeOut = new PrintWriter(new FileWriter(fileNameBase + "eye_output.txt"));
+				trackerOut = new PrintWriter(new FileWriter(fileNameBase + "tracker_output.txt"));
+				pollOut = new PrintWriter(new FileWriter(fileNameBase + "poll_output.txt"));
+				detectionOut.println(totalStartTime);
+				eyeOut.println(totalStartTime);
+				trackerOut.println(totalStartTime);
+				pollOut.println(totalStartTime);
+			}
 		}
 		catch (IOException e) {
 			e.printStackTrace();
@@ -79,10 +81,12 @@ public class DataAggregator {
 	}
 	
 	public void closeAll () {
-		eyeOut.close();
-		pollOut.close();
-		detectionOut.close();
-		trackerOut.close();
+		if (!isPracticeRun) {
+			eyeOut.close();
+			pollOut.close();
+			detectionOut.close();
+			trackerOut.close();
+		}
 	}
 	
 	public void printEyeOutput (Entry e) {
@@ -119,6 +123,7 @@ public class DataAggregator {
 				e.t.targetLocation() + " " + 
 				e.getRecommendationString() + " " + 
 				e.identifiedEnemy + " " + 
+				e.outOfTime + " " + 
 				e.timeSpent + " " + 
 				f.format(e.getDetectionScore()) + " " +
 				f.format(e.getTrackerScore()) + " "

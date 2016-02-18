@@ -5,6 +5,7 @@ import com.theeyetribe.client.data.GazeData;
 public class Entry {
 	public Trial t;
 	public boolean identifiedEnemy;
+	public boolean outOfTime;
 	public double timeSpent;
 	public double meanDistance;
 	public int trialNumber;
@@ -28,12 +29,15 @@ public class Entry {
 	private void resolveAnswer (int a) {
 		if (a == 0) {
 			identifiedEnemy = true;
+			outOfTime = false;
 		}
 		else if (a == 1) {
 			identifiedEnemy = false;
+			outOfTime = true;
 		}
 		else { //user is wrong no matter what
 			identifiedEnemy = !t.containsEnemy;
+			outOfTime = true;
 		}
 	}
 	
