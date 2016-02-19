@@ -1,11 +1,10 @@
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.ArrayList;
-
-import com.theeyetribe.client.data.GazeData;
 
 public class DataAggregator {
 	public ArrayList<Entry> entryList;
@@ -45,10 +44,11 @@ public class DataAggregator {
 				eyeOut = new PrintWriter(new FileWriter(fileNameBase + "eye_output.txt"));
 				trackerOut = new PrintWriter(new FileWriter(fileNameBase + "tracker_output.txt"));
 				pollOut = new PrintWriter(new FileWriter(fileNameBase + "poll_output.txt"));
-				detectionOut.println(totalStartTime);
-				eyeOut.println(totalStartTime);
-				trackerOut.println(totalStartTime);
-				pollOut.println(totalStartTime);
+				Timestamp t = new Timestamp(System.currentTimeMillis());
+				detectionOut.println(t);
+				eyeOut.println(t);
+				trackerOut.println(t);
+				pollOut.println(t);
 			}
 		}
 		catch (IOException e) {
@@ -91,10 +91,10 @@ public class DataAggregator {
 	
 	public void printEyeOutput (Entry e) {
 		PrintWriter fout = eyeOut;
-		for (GazeData g : e.eyeData) {
-			fout.println(e.trialNumber + " " + g.timeStampString + " " + g.isFixated + " " + 
-					new Tuple(g.smoothedCoordinates.x, g.smoothedCoordinates.y).add(e.canvasPosOnScreen.scalarMultiple(-1)) + " " + 
-					new Tuple(g.leftEye.pupilSize, g.rightEye.pupilSize));
+		for (EyeEntry data : e.eyeData) {
+			fout.println(e.trialNumber + " " + f.format(data.startTime - totalStartTime) + " " + data.g.isFixated + " " + 
+					new Tuple(data.g.smoothedCoordinates.x, data.g.smoothedCoordinates.y).add(e.canvasPosOnScreen.scalarMultiple(-1)) + " " + 
+					new Tuple(data.g.leftEye.pupilSize, data.g.rightEye.pupilSize));
 		}
 	}
 	

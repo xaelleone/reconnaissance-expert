@@ -10,18 +10,18 @@ public class Entry {
 	public double meanDistance;
 	public int trialNumber;
 	public double absoluteStartTime;
-	public ArrayList<GazeData> eyeData;
+	public ArrayList<EyeEntry> eyeData;
 	public Tuple canvasPosOnScreen;
 	public boolean earlyJoystick;
 	
-	public Entry (Trial tr, int a, double meanDist, double time, int counter, ArrayList<GazeData> gazeData, Tuple canvas, boolean noDetection) {
+	public Entry (Trial tr, int a, double meanDist, double time, int counter, ArrayList<EyeEntry> gazeData, Tuple canvas, boolean noDetection) {
 		t = tr;
 		resolveAnswer (a);
 		meanDistance = meanDist;
 		timeSpent = time;
 		trialNumber = counter;
 		absoluteStartTime = System.currentTimeMillis();
-		eyeData = new ArrayList<GazeData>(gazeData);
+		eyeData = new ArrayList<EyeEntry>(gazeData);
 		canvasPosOnScreen = canvas;
 		earlyJoystick = noDetection;
 	}
@@ -73,9 +73,9 @@ public class Entry {
 	}
 	
 	public double firstFixation () {
-		for (GazeData g : eyeData) {
-			if (g.isFixated) {
-				return 10000 + g.timeStamp - this.absoluteStartTime;
+		for (EyeEntry data : eyeData) {
+			if (data.g.isFixated) {
+				return 10000 + data.g.timeStamp - this.absoluteStartTime;
 			}
 		}
 		return 10000; //never fixated: what is wrong with your eyes?
@@ -87,9 +87,9 @@ public class Entry {
 			percentages.add(0.0);
 		}
 		int classification;
-		for (GazeData g : eyeData) {
-			classification = classifyEyeLocation(g);
-			if (dwellOnly || g.isFixated) {
+		for (EyeEntry data : eyeData) {
+			classification = classifyEyeLocation(data.g);
+			if (dwellOnly || data.g.isFixated) {
 				percentages.set(classification, percentages.get(classification) +  1.0 / eyeData.size());
 			}
 		}

@@ -69,7 +69,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private int totalTimeSteps = 0;
 	private AudioPlayer audio = new AudioPlayer();
 	private String fileName;
-	private ArrayList<GazeData> currentGazeDataSet = new ArrayList<GazeData>();
+	private ArrayList<EyeEntry> currentGazeDataSet = new ArrayList<EyeEntry>();
 	private double pauseStart;
 	private double pauseBank = 0;
 	private boolean isControlRun = false;
@@ -574,7 +574,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		else {
 			trialNumber.setLabel("Trial " + counter + "/" + TrackerConstants.TRIAL_COUNT);
 			otherPracticeTip.setLabel("Score: " + formatScore(entries.getScore(), false) + "/" + 15 * counter);
-			this.currentGazeDataSet = new ArrayList<GazeData>();
+			this.currentGazeDataSet = new ArrayList<EyeEntry>();
 		} 
 	}
 	
@@ -749,7 +749,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
  -        		if (gazeData.smoothedCoordinates.x - this.getGCanvas().getLocationOnScreen().x < TrackerConstants.SCREEN_DIVISION_X) leftCount++;
  -        		totalTimeSteps++;
         		 */
-        		currentGazeDataSet.add(gazeData);
+        		currentGazeDataSet.add(new EyeEntry(gazeData));
         	
             }
         };
