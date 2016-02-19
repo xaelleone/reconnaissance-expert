@@ -121,11 +121,11 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		putRandomImages();
 		
 		tracker = new GRect(TrackerConstants.SCREEN_DIVISION_X, 0, APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X - TrackerConstants.RIGHT_BUFFER, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM);
-		tracker.setFillColor(Color.BLUE);
+		tracker.setColor(new Color(135, 206, 235));
 		tracker.setFilled(true);
 		add(tracker);
 		GRect trackerGround = new GRect(TrackerConstants.SCREEN_DIVISION_X, TrackerConstants.HORIZON_Y, APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X - TrackerConstants.RIGHT_BUFFER, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM - TrackerConstants.HORIZON_Y);
-		trackerGround.setFillColor(new Color(158, 144, 98));
+		trackerGround.setColor(new Color(210, 180, 140));
 		trackerGround.setFilled(true);
 		add(trackerGround);
 		addTarget();
