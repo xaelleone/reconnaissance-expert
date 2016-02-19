@@ -121,20 +121,24 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		putRandomImages();
 		
 		tracker = new GRect(TrackerConstants.SCREEN_DIVISION_X, 0, APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X - TrackerConstants.RIGHT_BUFFER, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM);
-		tracker.setFillColor(Color.BLACK);
+		tracker.setFillColor(Color.BLUE);
 		tracker.setFilled(true);
 		add(tracker);
-		
+		GRect trackerGround = new GRect(TrackerConstants.SCREEN_DIVISION_X, TrackerConstants.HORIZON_Y, APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X - TrackerConstants.RIGHT_BUFFER, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM - TrackerConstants.HORIZON_Y);
+		trackerGround.setFillColor(new Color(158, 144, 98));
+		trackerGround.setFilled(true);
+		add(trackerGround);
 		addTarget();
 		initCursorSwarm();
+		
+		initBlockers();
 		
 		timer = new GLabel("0");
 		timer.setColor(Color.WHITE);
 		timer.setFont(new Font("Arial", Font.BOLD, 14));
 		timer.setLocation(TrackerConstants.TIMER_X, TrackerConstants.TIMER_Y);
 		add(timer);
-		
-		addTooltip();
+		//addTooltip(); deprecated thing that says press z or x or whatever
 		
 		p = new Physics();
 		
@@ -161,6 +165,19 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		add(trialNumber);
 		add(otherPracticeTip);
 		running = true;
+	}
+	
+	private void initBlockers () {
+		GRect[] blockers = new GRect[3];
+		blockers[0] = new GRect(APPLICATION_WIDTH - TrackerConstants.RIGHT_BUFFER, 0, TrackerConstants.RIGHT_BUFFER, APPLICATION_HEIGHT);
+		blockers[1] = new GRect(TrackerConstants.SCREEN_DIVISION_X - TrackerConstants.RIGHT_BUFFER, 0, TrackerConstants.RIGHT_BUFFER, APPLICATION_HEIGHT);
+		blockers[2] = new GRect(TrackerConstants.SCREEN_DIVISION_X, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM, APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X, TrackerConstants.RECOMMENDER_BUFFER * 3 / 2);
+		for (GRect g : blockers) {
+			g.setColor(Color.WHITE);
+			g.setFilled(true);
+			g.sendToFront();
+			this.add(g);
+		}
 	}
 	
 	private void initCursorSwarm () {
@@ -205,18 +222,19 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	
 	private void initRecommender () {
 		automationRecommendation = new GRect[isBinaryAlarm ? 2 : 4];
-		int startX = TrackerConstants.SCREEN_DIVISION_X + (APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X) / 2 + TrackerConstants.RECOMMENDER_BUFFER;
-		int startY = APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM + TrackerConstants.RECOMMENDER_BUFFER;
-		int width = TrackerConstants.RECOMMENDER_BUFFER * 3 / automationRecommendation.length;
-		int height = TrackerConstants.RECOMMENDER_BUFFER;
+		int startX = TrackerConstants.SCREEN_DIVISION_X + TrackerConstants.RECOMMENDER_BUFFER;
+		int startY = APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM + TrackerConstants.RECOMMENDER_BUFFER * 7 / 4;
+		int width = (APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X - TrackerConstants.RECOMMENDER_BUFFER * 2) / automationRecommendation.length;
+		int height = TrackerConstants.RECOMMENDER_BUFFER * 3 / 2;
 		Color c;
 		for (int i = 0; i < automationRecommendation.length; i++) {
 			automationRecommendation[i] = new GRect(startX, startY, width, height);
 			automationRecommendation[i].setFilled(true);
 			c = isControlRun ? Color.WHITE : isBinaryAlarm ? QuotaSet.BINARY_COLORS[i] : QuotaSet.LIKELIHOOD_COLORS[i];
-			automationRecommendation[i].setColor(modifyAlpha(c, TrackerConstants.INACTIVE_ALARM_ALPHA));
+			automationRecommendation[i].setColor(c);
+			automationRecommendation[i].setFillColor(modifyAlpha(c, TrackerConstants.INACTIVE_ALARM_ALPHA));
 			this.add(automationRecommendation[i]);
-			startX += width;
+			startX += width + 1;
 		}
 	}
 	
@@ -227,10 +245,10 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private void changeColor (Color c) {
 		for (int i = 0; i < automationRecommendation.length; i++) {
 			if ((isBinaryAlarm && QuotaSet.BINARY_COLORS[i].equals(c)) || !isBinaryAlarm && QuotaSet.LIKELIHOOD_COLORS[i].equals(c)) {
-				automationRecommendation[i].setColor(modifyAlpha(automationRecommendation[i].getColor(), TrackerConstants.ACTIVE_ALARM_ALPHA));
+				automationRecommendation[i].setFillColor(modifyAlpha(automationRecommendation[i].getColor(), TrackerConstants.ACTIVE_ALARM_ALPHA));
 			}
 			else {
-				automationRecommendation[i].setColor(modifyAlpha(automationRecommendation[i].getColor(), TrackerConstants.INACTIVE_ALARM_ALPHA));
+				automationRecommendation[i].setFillColor(modifyAlpha(automationRecommendation[i].getColor(), TrackerConstants.INACTIVE_ALARM_ALPHA));
 			}
 		}
 	}
@@ -262,7 +280,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		//runMainScreen();
 	}
 	
-	private void addTooltip () {
+	/*private void addTooltip () {
 		String[] strs = new String[] {"Report to commander:", "Z: Enemy spotted", "X: Area clear"};
 		GLabel temp;
 		for (int i = 0; i < strs.length; i++) {
@@ -271,7 +289,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 			temp.setLocation(TrackerConstants.SCREEN_DIVISION_X + TrackerConstants.RECOMMENDER_BUFFER, i * TrackerConstants.LINE_HEIGHT + APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM + TrackerConstants.RECOMMENDER_BUFFER);
 			add(temp);
 		}
-	}
+	}*/
 	
 	/*private void moveSelectorDirection (int direction) {
 		selectorPosition = TrackerConstants.SELECTOR_TRANSPOSITIONS[direction][selectorPosition];
@@ -508,7 +526,6 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private void incrementTrialNumber () {
 		if (!inPracticeMode || (counter >= 1 && counter < 13)) {
 			pause();
-			displayAndLogPolls(); //TODO: come back here and remove this
 			if (entries.getMostRecentEntry().getScore() > 0) {
 				audio.play("sounds/goodjob.wav");
 				audio = new AudioPlayer();
@@ -535,7 +552,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 			this.exit();
 		}
 		counter++;
-		if (counter >= 14 && inPracticeMode) {
+		if (counter >= 13 && inPracticeMode) {
 			inPracticeMode = false;
 			counter = 1;
 			entries = new DataAggregator(startTime, fileName, reliability, isBinaryAlarm, isControlRun, false);
@@ -549,7 +566,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 			unpause();
 		}
 		if (inPracticeMode) {
-			trialNumber.setLabel("Trial " + counter + "/" + 13);
+			trialNumber.setLabel("Trial " + counter + "/" + 12);
 			otherPracticeTip.setLabel("Score: " + formatScore(entries.getScore(), false) + "/" + 15 * counter);
 			/*trialNumber.setLabel(practiceText.get(counter * 2));
 			otherPracticeTip.setLabel(practiceText.get(counter * 2 + 1));*/
@@ -575,7 +592,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private void moveCursorSwarm (double x, double y) {
 		for (GObject g : cursorSwarm) {
 			//BOUNDS CHECK
-			if (g.getLocation().getY() > APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM || g.getLocation().getX() < TrackerConstants.SCREEN_DIVISION_X) {
+			if (g.getLocation().getY() > APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM || g.getLocation().getX() + (g.getWidth() / 2) < TrackerConstants.SCREEN_DIVISION_X) {
 				g.setVisible(false);
 			}
 			if (g.getLocation().getY() < APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM && g.getLocation().getX() > TrackerConstants.SCREEN_DIVISION_X) {
