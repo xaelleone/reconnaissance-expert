@@ -5,6 +5,7 @@ name_(b|l)_(70|80|90)_(detection|poll|tracker|eye)_output.txt
 detection task columns:
 
 1. Trial Number (1-indexed)
+1.5. Time stamp
 2. Start Time (relative to beginning, in ms)
 3. True State (0 if absent, 1 if present)
 4. target location (-1 if absent, 0, 1, 2, 3, starting from top left and going right)
@@ -28,6 +29,7 @@ poll output:
 tracker output:
 
 1. Trial number
+1.5. Time stamp
 2. relative start time
 3. joystick x
 4. joystick y
@@ -37,7 +39,24 @@ tracker output:
 eye output:
 
 1. Trial number
+1.5. Time stamp
 2. relative start time
 3. isFixated
-4. smoothed x (relative to the window's position on the screen)
-5. smoothed y
+4. raw x (relative to the window's position on the screen)
+5. raw y
+5. smoothed x (relative to the window's position on the screen)
+6. smoothed y
+7. left eye raw x
+8. left eye raw y
+9. left eye smoothed x
+10. left eye smoothed y
+11. left eye pupil size
+12. left eye pupil coordinates normalized x
+13. left eye pupil coordinates normalized y
+14. right eye raw x
+15. right eye raw y
+16. right eye smoothed x
+17. right eye smoothed y
+18. right eye pupil size
+19. right eye pupil coordinates normalized x
+20. right eye pupil coordinates normalized y

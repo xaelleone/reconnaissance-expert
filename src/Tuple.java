@@ -2,6 +2,8 @@ import java.awt.Point;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
+import com.theeyetribe.client.data.Point2D;
+
 public class Tuple {
 	public double x;
 	public double y;
@@ -15,7 +17,12 @@ public class Tuple {
 		x = locationOnScreen.getX();
 		y = locationOnScreen.getY();
 	}
-
+	
+	public Tuple(Point2D sigh) {
+		x = sigh.x;
+		y = sigh.y;
+	}
+	
 	public double innerProduct () {
 		return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
 	}

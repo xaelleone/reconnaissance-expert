@@ -74,6 +74,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private double pauseBank = 0;
 	private boolean isControlRun = false;
 	private JButton close = new JButton("Close");
+	private GRect[] blockers;
 	
 	//TODO: add control run
 	//TODO: normalize number of practice trials and record 
@@ -112,7 +113,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	
 	private void initMainScreen () {
 		this.removeAll();
-		entries = new DataAggregator(startTime, fileName, reliability, isBinaryAlarm, isControlRun, true);
+		entries = new DataAggregator(System.currentTimeMillis(), fileName, reliability, isBinaryAlarm, isControlRun, true);
 		
 		initRecommender();
 		
@@ -121,17 +122,15 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		putRandomImages();
 		
 		tracker = new GRect(TrackerConstants.SCREEN_DIVISION_X, 0, APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X - TrackerConstants.RIGHT_BUFFER, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM);
-		tracker.setColor(new Color(135, 206, 235));
+		tracker.setColor(new Color(105, 176, 205));
 		tracker.setFilled(true);
 		add(tracker);
 		GRect trackerGround = new GRect(TrackerConstants.SCREEN_DIVISION_X, TrackerConstants.HORIZON_Y, APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X - TrackerConstants.RIGHT_BUFFER, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM - TrackerConstants.HORIZON_Y);
-		trackerGround.setColor(new Color(210, 180, 140));
+		trackerGround.setColor(new Color(180, 150, 110));
 		trackerGround.setFilled(true);
 		add(trackerGround);
 		addTarget();
 		initCursorSwarm();
-		
-		initBlockers();
 		
 		timer = new GLabel("0");
 		timer.setColor(Color.WHITE);
@@ -168,7 +167,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	private void initBlockers () {
-		GRect[] blockers = new GRect[3];
+		blockers = new GRect[3];
 		blockers[0] = new GRect(APPLICATION_WIDTH - TrackerConstants.RIGHT_BUFFER, 0, TrackerConstants.RIGHT_BUFFER, APPLICATION_HEIGHT);
 		blockers[1] = new GRect(TrackerConstants.SCREEN_DIVISION_X - TrackerConstants.RIGHT_BUFFER, 0, TrackerConstants.RIGHT_BUFFER, APPLICATION_HEIGHT);
 		blockers[2] = new GRect(TrackerConstants.SCREEN_DIVISION_X, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM, APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X, TrackerConstants.RECOMMENDER_BUFFER * 3 / 2);
@@ -200,6 +199,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 			g.setColor(Color.YELLOW);
 			this.add(g);
 		}
+		initBlockers();
 	}
 	
 	private ArrayList<GLine> inwardDashes (ArrayList<GLine> shapes, Tuple center, double sep, double unit, boolean horiz) {
@@ -448,7 +448,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	private void addEntry (int answer) {
-		entries.add(new Entry(allTrials.get(counter - 1), answer, inCircleSteps * 1.0 / totalTimeSteps, System.currentTimeMillis() - startTime, counter, currentGazeDataSet, new Tuple(this.getGCanvas().getLocationOnScreen()), inPracticeMode && counter < 5));
+		entries.add(new Entry(allTrials.get(counter - 1), answer, inCircleSteps * 1.0 / totalTimeSteps, startTime, counter, currentGazeDataSet, new Tuple(this.getGCanvas().getLocationOnScreen()), inPracticeMode && counter < 5));
 	}
 	
 	private void addTarget () {
@@ -535,7 +535,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 				audio = new AudioPlayer();
 			}
 			displayRoundFeedback();
-			if (counter % 5 != 0 || inPracticeMode) {
+			if (!(counter == 12 && inPracticeMode) && (counter % 5 != 0 || inPracticeMode)) {
 				countdown();
 			}
 			unpause();
@@ -555,7 +555,6 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		if (counter >= 13 && inPracticeMode) {
 			inPracticeMode = false;
 			counter = 1;
-			entries = new DataAggregator(startTime, fileName, reliability, isBinaryAlarm, isControlRun, false);
 			loadImages();
 			pause();
 			JOptionPane.showMessageDialog(this, "The practice phase is over. You are about to begin the experiment.",
@@ -564,15 +563,16 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 			);
 			countdown();
 			unpause();
+			entries = new DataAggregator(System.currentTimeMillis(), fileName, reliability, isBinaryAlarm, isControlRun, false);
 		}
 		if (inPracticeMode) {
-			trialNumber.setLabel("Trial " + counter + "/" + 12);
+			trialNumber.setLabel("Trial: " + counter + "/" + 12);
 			otherPracticeTip.setLabel("Score: " + formatScore(entries.getScore(), false) + "/" + 15 * counter);
 			/*trialNumber.setLabel(practiceText.get(counter * 2));
 			otherPracticeTip.setLabel(practiceText.get(counter * 2 + 1));*/
 		}
 		else {
-			trialNumber.setLabel("Trial " + counter + "/" + TrackerConstants.TRIAL_COUNT);
+			trialNumber.setLabel("Trial: " + counter + "/" + TrackerConstants.TRIAL_COUNT);
 			otherPracticeTip.setLabel("Score: " + formatScore(entries.getScore(), false) + "/" + 15 * counter);
 			this.currentGazeDataSet = new ArrayList<EyeEntry>();
 		} 
@@ -600,6 +600,17 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 			}
 			g.move(x, y);
 		}
+	}
+	
+	private void resetCursorSwarm () {
+		for (GObject g : cursorSwarm) {
+			this.remove(g);
+		}
+		for (GRect b : blockers) {
+			this.remove(b);
+		}
+		cursorSwarm = new ArrayList<GObject>();
+		addTarget();
 	}
 	
 	private void displayAndLogPolls () {
@@ -700,7 +711,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	private String formatScore (double d, boolean addPlus) {
-		String s = Integer.toString((int)d);
+		String s = Long.toString(Math.round(d));
 		if (addPlus && (int)d >= 0) s = "+" + s;
 		return s;
 	}
@@ -813,6 +824,8 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 				if (System.currentTimeMillis() % 10 == 0) {
 					timer.setLabel("Time left: " + Double.toString((int)(100 * (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime - pauseBank)) / 1000d) / 100d));
 					if (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime - pauseBank) <= 0) {
+						resetCursorSwarm();
+						p = new Physics();
 						pressedButton = false;
 						nextRound(-1);
 					}

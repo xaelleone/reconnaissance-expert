@@ -92,15 +92,25 @@ public class DataAggregator {
 	public void printEyeOutput (Entry e) {
 		PrintWriter fout = eyeOut;
 		for (EyeEntry data : e.eyeData) {
-			fout.println(e.trialNumber + " " + f.format(data.startTime - totalStartTime) + " " + data.g.isFixated + " " + 
-					new Tuple(data.g.smoothedCoordinates.x, data.g.smoothedCoordinates.y).add(e.canvasPosOnScreen.scalarMultiple(-1)) + " " + 
-					new Tuple(data.g.leftEye.pupilSize, data.g.rightEye.pupilSize));
+			fout.println(e.trialNumber + " " + data.g.timeStampString + " " + f.format(data.startTime - totalStartTime) + " " + data.g.isFixated + " " + 
+					new Tuple(data.g.rawCoordinates).add(e.canvasPosOnScreen.scalarMultiple(-1)) + " " + 
+					new Tuple(data.g.smoothedCoordinates).add(e.canvasPosOnScreen.scalarMultiple(-1)) + " " + 
+					new Tuple(data.g.leftEye.rawCoordinates).add(e.canvasPosOnScreen.scalarMultiple(-1)) + " " + 
+					new Tuple(data.g.leftEye.smoothedCoordinates).add(e.canvasPosOnScreen.scalarMultiple(-1)) + " " + 
+					data.g.leftEye.pupilSize + " " +
+					new Tuple(data.g.leftEye.pupilCenterCoordinates) + " " + 
+					new Tuple(data.g.rightEye.rawCoordinates).add(e.canvasPosOnScreen.scalarMultiple(-1)) + " " + 
+					new Tuple(data.g.rightEye.smoothedCoordinates).add(e.canvasPosOnScreen.scalarMultiple(-1)) + " " + 
+					data.g.rightEye.pupilSize + " " +
+					new Tuple(data.g.rightEye.pupilCenterCoordinates)
+					);
 		}
 	}
 	
 	public void printTrackerOutput (TrackerEntry t) {
 		PrintWriter fout = trackerOut;
 		fout.println(t.trialNumber + " " + 
+				new Timestamp((long)t.absoluteTime) + " " +
 				f.format(t.absoluteTime - this.totalStartTime) + " " + 
 				t.position + " " +
 				t.joystickPos);
@@ -118,6 +128,7 @@ public class DataAggregator {
 	public void printDetectionOutput (Entry e) {
 		PrintWriter fout = detectionOut;
 		fout.print(e.trialNumber + " " + 
+				new Timestamp((long)e.absoluteStartTime) + " " + 
 				(e.absoluteStartTime - this.totalStartTime) + " " + 
 				e.t.containsEnemy + " " + 
 				e.t.targetLocation() + " " + 

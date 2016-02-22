@@ -1,3 +1,4 @@
+import java.sql.Timestamp;
 import java.util.ArrayList;
 
 import com.theeyetribe.client.data.GazeData;
@@ -14,13 +15,13 @@ public class Entry {
 	public Tuple canvasPosOnScreen;
 	public boolean earlyJoystick;
 	
-	public Entry (Trial tr, int a, double meanDist, double time, int counter, ArrayList<EyeEntry> gazeData, Tuple canvas, boolean noDetection) {
+	public Entry (Trial tr, int a, double meanDist, double startTime, int counter, ArrayList<EyeEntry> gazeData, Tuple canvas, boolean noDetection) {
 		t = tr;
 		resolveAnswer (a);
 		meanDistance = meanDist;
-		timeSpent = time;
+		timeSpent = System.currentTimeMillis() - startTime;
 		trialNumber = counter;
-		absoluteStartTime = System.currentTimeMillis();
+		absoluteStartTime = startTime;
 		eyeData = new ArrayList<EyeEntry>(gazeData);
 		canvasPosOnScreen = canvas;
 		earlyJoystick = noDetection;
@@ -72,13 +73,26 @@ public class Entry {
 		return eyePercentage(false);
 	}
 	
-	public double firstFixation () {
+	public Tuple firstFixation () {
+		return new Tuple(firstLeftFixation(), firstRightFixation());
+	}
+	
+	public double firstLeftFixation () {
 		for (EyeEntry data : eyeData) {
-			if (data.g.isFixated) {
-				return 10000 + data.g.timeStamp - this.absoluteStartTime;
+			if (data.g.isFixated && data.g.smoothedCoordinates.x < TrackerConstants.SCREEN_DIVISION_X && data.startTime > this.absoluteStartTime) {
+				return data.startTime - this.absoluteStartTime;
 			}
 		}
 		return 10000; //never fixated: what is wrong with your eyes?
+	}
+	
+	public double firstRightFixation () {
+		for (EyeEntry data : eyeData) {
+			if (data.g.isFixated && data.g.smoothedCoordinates.x > TrackerConstants.SCREEN_DIVISION_X && data.startTime > this.absoluteStartTime) {
+				return data.startTime - this.absoluteStartTime;
+			}
+		}
+		return 10000; //actually probably just looking away
 	}
 	
 	private ArrayList<Double> eyePercentage (boolean dwellOnly) {
