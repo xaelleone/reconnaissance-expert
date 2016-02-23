@@ -43,6 +43,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private static final long serialVersionUID = 1L;
 	public static final int APPLICATION_HEIGHT = 1000;
 	public static final int APPLICATION_WIDTH = 1800 + TrackerConstants.RIGHT_BUFFER;
+	public static final int APPLICATION_X = 48;
 	private GLabel timer;
 	private GRect tracker;
 	private int counter = 0;
@@ -75,9 +76,6 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private boolean isControlRun = false;
 	private JButton close = new JButton("Close");
 	private GRect[] blockers;
-	
-	//TODO: add control run
-	//TODO: normalize number of practice trials and record 
 	
 	public static void main (String[] args) {
 		new Tracker().start();
@@ -122,11 +120,11 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		putRandomImages();
 		
 		tracker = new GRect(TrackerConstants.SCREEN_DIVISION_X, 0, APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X - TrackerConstants.RIGHT_BUFFER, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM);
-		tracker.setColor(new Color(105, 176, 205));
+		tracker.setColor(new Color(95, 166, 195));
 		tracker.setFilled(true);
 		add(tracker);
 		GRect trackerGround = new GRect(TrackerConstants.SCREEN_DIVISION_X, TrackerConstants.HORIZON_Y, APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X - TrackerConstants.RIGHT_BUFFER, APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM - TrackerConstants.HORIZON_Y);
-		trackerGround.setColor(new Color(180, 150, 110));
+		trackerGround.setColor(new Color(170, 140, 100));
 		trackerGround.setFilled(true);
 		add(trackerGround);
 		addTarget();
@@ -457,6 +455,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		double sep = unit * 3d / 4;
 		Tuple o = Physics.ORIGIN;
 		cursorSwarm.add(new GOval(TrackerConstants.SCREEN_DIVISION_X + (APPLICATION_WIDTH - TrackerConstants.RIGHT_BUFFER - TrackerConstants.SCREEN_DIVISION_X) / 2 - unit, (APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM) / 2 - unit, unit * 2, unit * 2));
+		cursorSwarm.add(new GOval(1 + TrackerConstants.SCREEN_DIVISION_X + (APPLICATION_WIDTH - TrackerConstants.RIGHT_BUFFER - TrackerConstants.SCREEN_DIVISION_X) / 2 - unit, 1 + (APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM) / 2 - unit, unit * 2 - 2, unit * 2 - 2));
 		cursorSwarm.add(new GLine(o.x - sep, o.y, o.x - sep - unit / 2, o.y));
 		cursorSwarm.add(new GLine(o.x + sep, o.y, o.x + sep + unit / 2, o.y));
 		cursorSwarm.add(new GLine(o.x, o.y - sep, o.x, o.y - sep - unit / 2));
@@ -524,6 +523,11 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	private void incrementTrialNumber () {
+		if (inPracticeMode && counter == 0) {
+			pause();
+			countdown();
+			unpause();
+		}
 		if (!inPracticeMode || (counter >= 1 && counter < 13)) {
 			pause();
 			if (entries.getMostRecentEntry().getScore() > 0) {
@@ -549,6 +553,10 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		if (!inPracticeMode && counter == TrackerConstants.TRIAL_COUNT) {
 			running = false;
 			entries.closeAll();
+			JOptionPane.showMessageDialog(this, "The experiment is over. Thank you for participating.",
+					"End of practice",
+					JOptionPane.PLAIN_MESSAGE
+			);
 			this.exit();
 		}
 		counter++;

@@ -90,6 +90,9 @@ public class DataAggregator {
 	}
 	
 	public void printEyeOutput (Entry e) {
+		if (entryList.size() == 1) {
+			eyeOut.println(entryList.get(0).canvasPosOnScreen);
+		}
 		PrintWriter fout = eyeOut;
 		for (EyeEntry data : e.eyeData) {
 			fout.println(e.trialNumber + " " + data.g.timeStampString + " " + f.format(data.startTime - totalStartTime) + " " + data.g.isFixated + " " + 
@@ -146,6 +149,9 @@ public class DataAggregator {
 		for (double d : e.fixationDuration()) {
 			fout.print(f.format(d) + " ");
 		}
+		for (String s : e.t.imageSet) {
+			fout.print(stripFileName(s) + " ");
+		}
 		fout.println();
 	}
 	
@@ -175,5 +181,10 @@ public class DataAggregator {
 	
 	public Entry getMostRecentEntry () {
 		return entryList.get(entryList.size() - 1);
+	}
+	
+	private String stripFileName (String fileName) {
+		String[] split = fileName.split("/");
+		return split[split.length - 1];
 	}
 }
