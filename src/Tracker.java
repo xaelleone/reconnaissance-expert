@@ -76,6 +76,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private boolean isControlRun = false;
 	private JButton close = new JButton("Close");
 	private GRect[] blockers;
+	private int preEnteredAnswer = -1;
 	
 	public static void main (String[] args) {
 		new Tracker().start();
@@ -586,8 +587,8 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		} 
 	}
 	
-	private void nextRound (int answer) { //0: spotted enemy, 1: all clear, -1: no answer
-		if (!inPracticeMode || counter >= 1) addEntry(answer);
+	private void nextRound () { //0: spotted enemy, 1: all clear, -1: no answer
+		if (!inPracticeMode || counter >= 1) addEntry(preEnteredAnswer);
 		incrementTrialNumber();
 		putRandomImages();
 		pauseBank = 0;
@@ -595,6 +596,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		totalTimeSteps = 0;
 		totalDistance = 0;
 		inCircleSteps = 0;
+		preEnteredAnswer = -1;
 	}
 	
 	private void moveCursorSwarm (double x, double y) {
@@ -619,6 +621,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		}
 		cursorSwarm = new ArrayList<GObject>();
 		addTarget();
+		initBlockers();
 	}
 	
 	private void displayAndLogPolls () {
@@ -805,20 +808,21 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 							audio.play("sounds/ack.wav");
 							audio = new AudioPlayer();
 							pressedButton = true;
-							addEntry(0);
+							preEnteredAnswer = 0;
 						}
 						else if (joystick.getComponents()[1].getPollData() > 0.5) { //button on the thumb
 							audio.play("sounds/ack.wav");
 							audio = new AudioPlayer();
 							pressedButton = true;
-							addEntry(1);
+							preEnteredAnswer = 1;
 						}
 					}
 					moveJoystick(joystick.getComponents()[12].getPollData(), joystick.getComponents()[13].getPollData());
 					move = p.computeMove();
 					moveCursorSwarm(move.x, -1 * move.y); //just reverse it here
 					totalDistance += p.cursor.distance(new Tuple(0, 0));
-					inCircleSteps += p.cursor.distance(new Tuple(0, 0)) > TrackerConstants.TARGET_SIZE ? 0 : 1;
+					if (p.cursor.distance(new Tuple(0, 0)) < TrackerConstants.TARGET_SIZE) 
+						inCircleSteps++;
 					totalTimeSteps++;
 					/*currentTime = System.currentTimeMillis() / 200d / Math.PI;
 					cursor.movePolar((Math.sin(currentTime) - Math.sin(lastTime)) * 40, lastAngle);
@@ -835,7 +839,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 						resetCursorSwarm();
 						p = new Physics();
 						pressedButton = false;
-						nextRound(-1);
+						nextRound();
 					}
 				}
 			}

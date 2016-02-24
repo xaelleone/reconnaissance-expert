@@ -32,7 +32,7 @@ public class ImageSetGenerator {
 	
 	public ArrayList<Trial> getImages () {
 		ArrayList<Trial> allTrials = assignColors(pickImages());
-		System.out.println(allTrials);
+		//System.out.println(allTrials);
 		Collections.shuffle(allTrials);
 		return allTrials;
 	}
