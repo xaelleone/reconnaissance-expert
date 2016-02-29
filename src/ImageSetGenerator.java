@@ -115,9 +115,19 @@ public class ImageSetGenerator {
 	
 	private ArrayList<Trial> pickImages () {
 		ArrayList<Trial> presentOnly = pickImagesOfType(true);
+		presentOnly = evenOutPresentImages(presentOnly);
 		ArrayList<Trial> absentOnly = pickImagesOfType(false);
 		for (Trial t : absentOnly) {
 			presentOnly.add(t);
+		}
+		return presentOnly;
+	}
+	
+	private ArrayList<Trial> evenOutPresentImages (ArrayList<Trial> presentOnly) {
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < presentOnly.size() / 4; j++) {
+				presentOnly.get(i * presentOnly.size() / 4 + j).reassignPresentImage(i);
+			}
 		}
 		return presentOnly;
 	}

@@ -39,4 +39,8 @@ public class Trial {
 		totalString += Tracker.getRecommendationString(color);
 		return totalString;
 	}
+	
+	public void reassignPresentImage (int index) {
+		imageSet.add(index, imageSet.remove(targetLocation()));
+	}
 }
