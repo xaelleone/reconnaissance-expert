@@ -116,6 +116,7 @@ public class ImageSetGenerator {
 	private ArrayList<Trial> pickImages () {
 		ArrayList<Trial> presentOnly = pickImagesOfType(true);
 		presentOnly = evenOutPresentImages(presentOnly);
+		Collections.shuffle(presentOnly);
 		ArrayList<Trial> absentOnly = pickImagesOfType(false);
 		for (Trial t : absentOnly) {
 			presentOnly.add(t);

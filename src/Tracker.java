@@ -548,13 +548,13 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 		if (!inPracticeMode && counter % 5 == 0) {
 			pause(); //pause the tracker
 			displayAndLogPolls();
-			countdown();
 			if (counter % 50 == 0) {
 				JOptionPane.showMessageDialog(this, "You make take a short break before continuing.",
 						"Break",
 						JOptionPane.PLAIN_MESSAGE
 				);
 			}
+			countdown();
 			unpause();
 		}
 		if (!inPracticeMode && counter == TrackerConstants.TRIAL_COUNT) {
