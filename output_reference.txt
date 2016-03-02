@@ -16,8 +16,9 @@ detection task columns:
 9. detection score change
 10. tracking task score change
 11 - 15. percentage dwell (0, 1, 2, 3 enumerated like column 4, then 4 is tracker area, 5 is elsewhere)
-16 - 17. first fixation left and right
+16 - 17. first fixation left and right (actually at end)
 18 - 22. fixation duration
+file names
 
 poll output:
 

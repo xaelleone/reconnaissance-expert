@@ -546,7 +546,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 			}
 			unpause();
 		}
-		if (!inPracticeMode && counter % 5 == 0) {
+		if ((!inPracticeMode && counter % 5 == 0) || (inPracticeMode && (counter == 7 || counter == 12))) {
 			pause(); //pause the tracker
 			displayAndLogPolls();
 			if (counter % 50 == 0) {
