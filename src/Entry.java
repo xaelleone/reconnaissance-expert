@@ -15,11 +15,11 @@ public class Entry {
 	public Tuple canvasPosOnScreen;
 	public boolean earlyJoystick;
 	
-	public Entry (Trial tr, int a, double meanDist, double startTime, int counter, ArrayList<EyeEntry> gazeData, Tuple canvas, boolean noDetection) {
+	public Entry (Trial tr, int a, double meanDist, double startTime, int counter, ArrayList<EyeEntry> gazeData, Tuple canvas, boolean noDetection, double spent) {
 		t = tr;
 		resolveAnswer (a);
 		meanDistance = meanDist;
-		timeSpent = System.currentTimeMillis() - startTime;
+		timeSpent = spent;
 		trialNumber = counter;
 		absoluteStartTime = startTime;
 		eyeData = new ArrayList<EyeEntry>(gazeData);

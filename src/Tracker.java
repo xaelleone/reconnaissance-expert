@@ -77,6 +77,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	private JButton close = new JButton("Close");
 	private GRect[] blockers;
 	private int preEnteredAnswer = -1;
+	private double timeSpent;
 	
 	public static void main (String[] args) {
 		new Tracker().start();
@@ -447,7 +448,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	private void addEntry (int answer) {
-		entries.add(new Entry(allTrials.get(counter - 1), answer, inCircleSteps * 1.0 / totalTimeSteps, startTime, counter, currentGazeDataSet, new Tuple(this.getGCanvas().getLocationOnScreen()), inPracticeMode && counter < 5));
+		entries.add(new Entry(allTrials.get(counter - 1), answer, inCircleSteps * 1.0 / totalTimeSteps, startTime, counter, currentGazeDataSet, new Tuple(this.getGCanvas().getLocationOnScreen()), inPracticeMode && counter < 5, timeSpent));
 	}
 	
 	private void addTarget () {
@@ -815,12 +816,14 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 							audio = new AudioPlayer();
 							pressedButton = true;
 							preEnteredAnswer = 0;
+							timeSpent = System.currentTimeMillis() - startTime;
 						}
 						else if (joystick.getComponents()[1].getPollData() > 0.5) { //button on the thumb
 							audio.play("sounds/ack.wav");
 							audio = new AudioPlayer();
 							pressedButton = true;
 							preEnteredAnswer = 1;
+							timeSpent = System.currentTimeMillis() - startTime;
 						}
 					}
 					moveJoystick(joystick.getComponents()[12].getPollData(), joystick.getComponents()[13].getPollData());

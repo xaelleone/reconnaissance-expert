@@ -145,10 +145,10 @@ public class DataAggregator {
 		for (double d : e.percentageDwell()) {
 			fout.print(f.format(d) + " ");
 		}
-		fout.print(e.firstFixation() + " ");
 		for (double d : e.fixationDuration()) {
 			fout.print(f.format(d) + " ");
 		}
+		fout.print(e.firstFixation() + " ");
 		for (String s : e.t.imageSet) {
 			fout.print(stripFileName(s) + " ");
 		}
