@@ -550,7 +550,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 			pause(); //pause the tracker
 			displayAndLogPolls();
 			if (counter % 50 == 0) {
-				JOptionPane.showMessageDialog(this, "You make take a short break before continuing.",
+				JOptionPane.showMessageDialog(this, "You may take a short break before continuing.",
 						"Break",
 						JOptionPane.PLAIN_MESSAGE
 				);
