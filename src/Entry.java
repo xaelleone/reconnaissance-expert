@@ -23,7 +23,7 @@ public class Entry {
 		trialNumber = counter;
 		absoluteStartTime = startTime;
 		eyeData = new ArrayList<EyeEntry>(gazeData);
-		canvasPosOnScreen = canvas;
+		canvasPosOnScreen = canvas;	
 		earlyJoystick = noDetection;
 	}
 	
