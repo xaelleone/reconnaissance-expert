@@ -450,6 +450,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		for (int i = 0; i < imagesToUse.size(); i++) {
         	imagesToUse.get(i).setLocation(TrackerConstants.IMAGE_POSITIONS[i][0], TrackerConstants.IMAGE_POSITIONS[i][1]);
         	imagesToUse.get(i).setSize(TrackerConstants.IMAGE_WIDTH, TrackerConstants.IMAGE_HEIGHT);
+        	if (this.isOnTrackerScreen()) imagesToUse.get(i).setVisible(false);
         	this.add(imagesToUse.get(i));
         	pList.add(imagesToUse.get(i));
         }
@@ -784,6 +785,10 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		timer.setColor(Color.WHITE);
 	}
 	
+	private boolean isOnTrackerScreen () {
+		return this.tracker.isVisible();
+	}
+	
 	public void run () {
 		toPractice.addActionListener(new ActionListener() {
 			@Override
@@ -882,7 +887,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 				if (System.currentTimeMillis() % 10 == 0) {
 					timer.setLabel("Time left: " + Double.toString((int)(100 * (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime - pauseBank)) / 1000d) / 100d));
 					if (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime - pauseBank) <= 0) {
-						boolean oldStateRight = this.tracker.isVisible();
+						boolean oldStateRight = this.isOnTrackerScreen();
 						p = new Physics();
 						pressedButton = false;
 						nextRound();
