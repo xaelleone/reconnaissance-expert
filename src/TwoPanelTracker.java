@@ -78,6 +78,11 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 	private ArrayList<GObject> pList = new ArrayList<GObject>();
 	private ArrayList<GObject> tList = new ArrayList<GObject>();
 	
+	/*
+	 * TODO: 
+	 * change data recording practices
+	 */
+	
 	public static void main (String[] args) {
 		new TwoPanelTracker().start();
 	}
@@ -144,7 +149,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		
 		p = new Physics();
 		
-		this.add(close, APPLICATION_WIDTH - 30, 0);
+		this.add(close, APPLICATION_WIDTH - 100, 20);
 	}
 	
 	private void initializeControllers() {
@@ -450,7 +455,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		for (int i = 0; i < imagesToUse.size(); i++) {
         	imagesToUse.get(i).setLocation(TrackerConstants.IMAGE_POSITIONS[i][0], TrackerConstants.IMAGE_POSITIONS[i][1]);
         	imagesToUse.get(i).setSize(TrackerConstants.IMAGE_WIDTH, TrackerConstants.IMAGE_HEIGHT);
-        	if (this.isOnTrackerScreen()) imagesToUse.get(i).setVisible(false);
+        	imagesToUse.get(i).setVisible(false);
         	this.add(imagesToUse.get(i));
         	pList.add(imagesToUse.get(i));
         }
@@ -518,7 +523,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 	
 	private void createTemporaryDuplicateLabelForDuration (GLabel label, String s, double duration) {
 		GLabel temp = new GLabel(s);
-		temp.setLocation(APPLICATION_WIDTH / 2 - TrackerConstants.RECOMMENDER_BUFFER * 2, APPLICATION_HEIGHT / 2 - TrackerConstants.RECOMMENDER_BUFFER * 2);
+		temp.setLocation(APPLICATION_WIDTH / 2 - TrackerConstants.RECOMMENDER_BUFFER * 3, APPLICATION_HEIGHT / 2 - TrackerConstants.RECOMMENDER_BUFFER * 2);
 		temp.setFont(new Font("Arial", Font.PLAIN, 120));
 		temp.setColor(Color.RED);
 		add(temp);
@@ -538,14 +543,12 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		createTemporaryDuplicateLabelForDuration(trialNumber, "GO!", 500);
 	}
 	
-	private void incrementTrialNumber () {
-		if (inPracticeMode && counter == 0) {
-			pause();
-			countdown();
-			unpause();
+	private void incrementTrialNumber () { 
+		pause();
+		if (!inPracticeMode || counter >= 5) {
+			displayAndLogPolls();
 		}
 		if (!inPracticeMode || (counter >= 1 && counter < 13)) {
-			pause();
 			if (entries.getMostRecentEntry().getScore() > 0) {
 				audio.play("sounds/goodjob.wav");
 				audio = new AudioPlayer();
@@ -555,22 +558,12 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 				audio = new AudioPlayer();
 			}
 			displayRoundFeedback();
-			if (!((counter == 7 || counter == 12) && inPracticeMode) && (counter % 5 != 0 || inPracticeMode)) {
-				countdown();
-			}
-			unpause();
 		}
-		if ((!inPracticeMode && counter % 5 == 0) || (inPracticeMode && (counter == 7 || counter == 12))) {
-			pause(); //pause the tracker
-			displayAndLogPolls();
-			if (counter % 50 == 0) {
-				JOptionPane.showMessageDialog(this, "You may take a short break before continuing.",
-						"Break",
-						JOptionPane.PLAIN_MESSAGE
-				);
-			}
-			countdown();
-			unpause();
+		if (counter % 50 == 0 && counter / 50 > 0) {
+			JOptionPane.showMessageDialog(this, "You may take a short break before continuing.",
+					"Break",
+					JOptionPane.PLAIN_MESSAGE
+			);
 		}
 		if (!inPracticeMode && counter == TrackerConstants.TRIAL_COUNT) {
 			running = false;
@@ -581,20 +574,19 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 			);
 			this.exit();
 		}
-		counter++;
-		if (counter >= 13 && inPracticeMode) {
+		if (counter == 12 && inPracticeMode) {
 			inPracticeMode = false;
-			counter = 1;
+			counter = 0; //will get incremented
 			loadImages();
-			pause();
 			JOptionPane.showMessageDialog(this, "The practice phase is over. You are about to begin the experiment.",
 					"End of practice",
 					JOptionPane.PLAIN_MESSAGE
 			);
-			countdown();
-			unpause();
 			entries = new DataAggregator(System.currentTimeMillis(), fileName, reliability, isBinaryAlarm, isControlRun, false);
 		}
+		countdown();
+		unpause();
+		counter++;
 		if (inPracticeMode) {
 			trialNumber.setLabel("Trial: " + counter + "/" + 12);
 			otherPracticeTip.setLabel("Score: " + formatScore(entries.getScore(), false) + "/" + 15 * counter);
@@ -834,6 +826,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		Tuple move;
 		boolean initialized = false;
 		boolean pressedButton = false;
+		double lastPressed = System.currentTimeMillis();
 		while (true) {
 			System.out.print(running?"":""); //it is unclear why this is required, but something needs to check the running variable
 			if (audio.playCompleted) audio.close();
@@ -863,11 +856,14 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 							timeSpent = System.currentTimeMillis() - startTime;
 						}
 					}
-					if (joystick.getComponents()[2].getPollData() > 0.5) { //trigger
-						this.changeScreenLeft();
-					}
-					if (joystick.getComponents()[3].getPollData() > 0.5) {
-						this.changeScreenRight();
+					if (joystick.getComponents()[2].getPollData() > 0.5 && System.currentTimeMillis() - lastPressed > 500) { 
+						lastPressed = System.currentTimeMillis(); //refractory period so holding down the toggle doesn't continually switch back and forth
+						if (this.isOnTrackerScreen()) {
+							this.changeScreenLeft();
+						}
+						else {
+							this.changeScreenRight();
+						}
 					}
 					moveJoystick(joystick.getComponents()[12].getPollData(), joystick.getComponents()[13].getPollData());
 					move = p.computeMove();
@@ -887,13 +883,11 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 				if (System.currentTimeMillis() % 10 == 0) {
 					timer.setLabel("Time left: " + Double.toString((int)(100 * (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime - pauseBank)) / 1000d) / 100d));
 					if (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime - pauseBank) <= 0) {
-						boolean oldStateRight = this.isOnTrackerScreen();
 						p = new Physics();
 						pressedButton = false;
 						nextRound();
 						resetCursorSwarm();
-						if (oldStateRight) this.changeScreenRight();
-						else this.changeScreenLeft();
+						this.changeScreenRight();
 					}
 				}
 			}
