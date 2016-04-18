@@ -128,6 +128,13 @@ public class Entry {
 		return "???"; //unclear what occurred
 	}
 	
+	public double onTrackerPercentage () {
+		double sum = 0;
+		for (EyeEntry data : eyeData) {
+			if (data.onTrackerScreen) sum++;
+		}
+		return sum / eyeData.size();
+	}
 	/*public boolean enemyContained;
 	public boolean automationRecommendedEnemy;
 	public boolean subjectIdentifiedEnemy;

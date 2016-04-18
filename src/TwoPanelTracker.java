@@ -545,9 +545,6 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 	
 	private void incrementTrialNumber () { 
 		pause();
-		if (!inPracticeMode || counter >= 5) {
-			displayAndLogPolls();
-		}
 		if (!inPracticeMode || (counter >= 1 && counter < 13)) {
 			if (entries.getMostRecentEntry().getScore() > 0) {
 				audio.play("sounds/goodjob.wav");
@@ -558,6 +555,9 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 				audio = new AudioPlayer();
 			}
 			displayRoundFeedback();
+		}
+		if (!inPracticeMode || counter >= 5) {
+			displayAndLogPolls();
 		}
 		if (counter % 50 == 0 && counter / 50 > 0) {
 			JOptionPane.showMessageDialog(this, "You may take a short break before continuing.",
@@ -777,7 +777,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		timer.setColor(Color.WHITE);
 	}
 	
-	private boolean isOnTrackerScreen () {
+	public boolean isOnTrackerScreen () {
 		return this.tracker.isVisible();
 	}
 	
@@ -807,7 +807,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
  -        		if (gazeData.smoothedCoordinates.x - this.getGCanvas().getLocationOnScreen().x < TrackerConstants.SCREEN_DIVISION_X) leftCount++;
  -        		totalTimeSteps++;
         		 */
-        		currentGazeDataSet.add(new EyeEntry(gazeData));
+        		currentGazeDataSet.add(new EyeEntry(gazeData, isOnTrackerScreen()));
         	
             }
         };
