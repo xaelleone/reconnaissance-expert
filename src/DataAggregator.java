@@ -105,7 +105,8 @@ public class DataAggregator {
 					new Tuple(data.g.rightEye.rawCoordinates).add(e.canvasPosOnScreen.scalarMultiple(-1)) + " " + 
 					new Tuple(data.g.rightEye.smoothedCoordinates).add(e.canvasPosOnScreen.scalarMultiple(-1)) + " " + 
 					data.g.rightEye.pupilSize + " " +
-					new Tuple(data.g.rightEye.pupilCenterCoordinates)
+					new Tuple(data.g.rightEye.pupilCenterCoordinates) + " " + 
+					data.onTrackerScreen
 					);
 		}
 	}
@@ -149,6 +150,7 @@ public class DataAggregator {
 			fout.print(f.format(d) + " ");
 		}
 		fout.print(e.firstFixation() + " ");
+		fout.print(e.onTrackerPercentage() + " ");
 		for (String s : e.t.imageSet) {
 			fout.print(stripFileName(s) + " ");
 		}

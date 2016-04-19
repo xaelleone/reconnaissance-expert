@@ -18,6 +18,7 @@ detection task columns:
 11 - 15. percentage dwell (0, 1, 2, 3 enumerated like column 4, then 4 is tracker area, 5 is elsewhere)
 16 - 17. first fixation left and right (actually at end)
 18 - 22. fixation duration
+next - on tracker percentage
 file names
 
 poll output:
@@ -61,3 +62,4 @@ eye output:
 18. right eye pupil size
 19. right eye pupil coordinates normalized x
 20. right eye pupil coordinates normalized y
+next - on tracker

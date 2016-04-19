@@ -112,9 +112,9 @@ public class Entry {
 	
 	private int classifyEyeLocation (GazeData g) {
 		Tuple realPos = new Tuple(g.smoothedCoordinates.x - canvasPosOnScreen.x, g.smoothedCoordinates.y - canvasPosOnScreen.y);
-		if (realPos.y > Tracker.APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM) return 5;
-		if (realPos.x > TrackerConstants.SCREEN_DIVISION_X) return 4;
-		int right = realPos.x > (Tracker.APPLICATION_WIDTH - TrackerConstants.SCREEN_DIVISION_X) / 2 ? 1 : 0;
+		if (realPos.y > Tracker.APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM) return 4;
+		//if (realPos.x > TrackerConstants.SCREEN_DIVISION_X) return 4;
+		int right = realPos.x > (TrackerConstants.SCREEN_DIVISION_X) / 2 ? 1 : 0;
 		int bottom = realPos.y > (Tracker.APPLICATION_HEIGHT - TrackerConstants.TRACKER_AREA_BOTTOM) / 2 ? 1 : 0;
 		return 2 * bottom + right;
 	}
