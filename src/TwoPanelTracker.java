@@ -43,7 +43,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 	private static final long serialVersionUID = 1L;
 	public static final int APPLICATION_HEIGHT = 1000;
 	public static final int APPLICATION_WIDTH = TrackerConstants.SCREEN_DIVISION_X;
-	public static final int APPLICATION_X = 460;
+	public static final int APPLICATION_X = 360;
 	private GLabel timer;
 	private GRect tracker;
 	private int counter = 0;
@@ -523,9 +523,9 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 	
 	private void createTemporaryDuplicateLabelForDuration (GLabel label, String s, double duration) {
 		GLabel temp = new GLabel(s);
-		temp.setLocation(APPLICATION_WIDTH / 2 - TrackerConstants.RECOMMENDER_BUFFER * 3, APPLICATION_HEIGHT / 2 - TrackerConstants.RECOMMENDER_BUFFER * 2);
 		temp.setFont(new Font("Arial", Font.PLAIN, 120));
 		temp.setColor(Color.RED);
+		temp.setLocation(APPLICATION_WIDTH / 2 - temp.getWidth() / 2, APPLICATION_HEIGHT / 2 - TrackerConstants.RECOMMENDER_BUFFER * 2);
 		add(temp);
 		this.repaint();
 		double start = System.currentTimeMillis();
