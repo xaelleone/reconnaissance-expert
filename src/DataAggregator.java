@@ -41,12 +41,12 @@ public class DataAggregator {
 		try {
 			if (!isPracticeRun) {
 				detectionOut = new PrintWriter(new FileWriter(fileNameBase + "detection_output.txt"));
-				eyeOut = new PrintWriter(new FileWriter(fileNameBase + "eye_output.txt"));
+				//eyeOut = new PrintWriter(new FileWriter(fileNameBase + "eye_output.txt"));
 				trackerOut = new PrintWriter(new FileWriter(fileNameBase + "tracker_output.txt"));
 				pollOut = new PrintWriter(new FileWriter(fileNameBase + "poll_output.txt"));
 				Timestamp t = new Timestamp(System.currentTimeMillis());
 				detectionOut.println(t);
-				eyeOut.println(t);
+				//eyeOut.println(t);
 				trackerOut.println(t);
 				pollOut.println(t);
 			}
@@ -64,7 +64,7 @@ public class DataAggregator {
 		if (entryList.size() == 0 || entryList.get(entryList.size() - 1).trialNumber != e.trialNumber) {//take only first answer
 			entryList.add(e);
 			if (!isPracticeRun) {
-				printEyeOutput(e);
+				//printEyeOutput(e);
 				printDetectionOutput(e);
 			}
 		}
@@ -82,7 +82,7 @@ public class DataAggregator {
 	
 	public void closeAll () {
 		if (!isPracticeRun) {
-			eyeOut.close();
+			//eyeOut.close();
 			pollOut.close();
 			detectionOut.close();
 			trackerOut.close();
@@ -143,14 +143,15 @@ public class DataAggregator {
 				f.format(e.getDetectionScore()) + " " +
 				f.format(e.getTrackerScore()) + " "
 				);
-		for (double d : e.percentageDwell()) {
+		/*for (double d : e.percentageDwell()) {
 			fout.print(f.format(d) + " ");
 		}
 		for (double d : e.fixationDuration()) {
 			fout.print(f.format(d) + " ");
 		}
-		fout.print(e.firstFixation() + " ");
-		fout.print(e.onTrackerPercentage() + " ");
+		fout.print(e.firstFixation() + " ");*/
+		fout.print(e.onTrackerPercentage + " ");
+		fout.print(e.toggleCount + " ");
 		for (String s : e.t.imageSet) {
 			fout.print(stripFileName(s) + " ");
 		}

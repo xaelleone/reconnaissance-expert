@@ -65,6 +65,9 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 	private ArrayList<GObject> cursorSwarm;
 	private int inCircleSteps = 0;
 	private int totalTimeSteps = 0;
+	private int totalTrackerChecks = 0;
+	private int onTrackerChecks = 0;
+	private int toggles = 0;
 	private AudioPlayer audio = new AudioPlayer();
 	private String fileName;
 	private ArrayList<EyeEntry> currentGazeDataSet = new ArrayList<EyeEntry>();
@@ -466,7 +469,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 	}
 	
 	private void addEntry (int answer) {
-		entries.add(new Entry(allTrials.get(counter - 1), answer, inCircleSteps * 1.0 / totalTimeSteps, startTime, counter, currentGazeDataSet, new Tuple(this.getGCanvas().getLocationOnScreen()), inPracticeMode && counter < 5, timeSpent));
+		entries.add(new Entry(allTrials.get(counter - 1), answer, inCircleSteps * 1.0 / totalTimeSteps, startTime, counter, currentGazeDataSet, this.onTrackerChecks * 1.0 / this.totalTrackerChecks, this.toggles, new Tuple(this.getGCanvas().getLocationOnScreen()), inPracticeMode && counter < 5, timeSpent));
 	}
 	
 	private void addTarget () {
@@ -559,7 +562,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		if (!inPracticeMode || counter >= 5) {
 			displayAndLogPolls();
 		}
-		if (counter % 50 == 0 && counter / 50 > 0) {
+		if (counter % 50 == 0 && counter != 0) {
 			JOptionPane.showMessageDialog(this, "You may take a short break before continuing.",
 					"Break",
 					JOptionPane.PLAIN_MESSAGE
@@ -608,6 +611,9 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		startTime = System.currentTimeMillis();
 		totalTimeSteps = 0;
 		inCircleSteps = 0;
+		this.totalTrackerChecks = 0;
+		this.onTrackerChecks = 0;
+		this.toggles = 0;
 		preEnteredAnswer = -1;
 	}
 	
@@ -796,7 +802,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 				closeProgram();
 			}
 		});
-		final GazeManager gm = GazeManager.getInstance();
+		/*final GazeManager gm = GazeManager.getInstance();
         boolean success = gm.activate(ApiVersion.VERSION_1_0, ClientMode.PUSH);
         final IGazeListener listener = new IGazeListener () {
         	@Override
@@ -806,19 +812,19 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
         		 * // cursor.setLocation(gazeData.smoothedCoordinates.x - this.getGCanvas().getLocationOnScreen().x, gazeData.smoothedCoordinates.y - this.getGCanvas().getLocationOnScreen().y);
  -        		if (gazeData.smoothedCoordinates.x - this.getGCanvas().getLocationOnScreen().x < TrackerConstants.SCREEN_DIVISION_X) leftCount++;
  -        		totalTimeSteps++;
-        		 */
+        		
         		currentGazeDataSet.add(new EyeEntry(gazeData, isOnTrackerScreen()));
         	
             }
         };
-        gm.addGazeListener(listener);
+        gm.addGazeListener(listener);*/
         Runtime.getRuntime().addShutdownHook(new Thread()
         {
             @Override
             public void run()
             {
-                gm.removeGazeListener(listener);
-                gm.deactivate();
+                /*gm.removeGazeListener(listener);
+                gm.deactivate();*/
                 entries.closeAll();
             }
         });
@@ -827,6 +833,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		boolean initialized = false;
 		boolean pressedButton = false;
 		double lastPressed = System.currentTimeMillis();
+		TrackerEntry te;
 		while (true) {
 			System.out.print(running?"":""); //it is unclear why this is required, but something needs to check the running variable
 			if (audio.playCompleted) audio.close();
@@ -858,6 +865,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 					}
 					if (joystick.getComponents()[2].getPollData() > 0.5 && System.currentTimeMillis() - lastPressed > 500) { 
 						lastPressed = System.currentTimeMillis(); //refractory period so holding down the toggle doesn't continually switch back and forth
+						toggles++;
 						if (this.isOnTrackerScreen()) {
 							this.changeScreenLeft();
 						}
@@ -877,10 +885,13 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 					lastAngle += seed / 1500d;*/
 					//if (cursor.getxX() + cursor.getWidth() < TrackerConstants.SCREEN_DIVISION_X && cursor.isVisible()) cursor.setVisible(false);
 				}	
-				if (System.currentTimeMillis() % 200 == 0) {
-					entries.addTrackerEntry(new TrackerEntry(counter, p.cursor, p.mouseDiff)); //seldom do this
+				if (System.currentTimeMillis() % 200 == 0 && !inPracticeMode) {
+					te = new TrackerEntry(counter, p.cursor, p.mouseDiff, this.isOnTrackerScreen());
+					entries.addTrackerEntry(te); //seldom do this
+					this.totalTrackerChecks++;
+					if (this.isOnTrackerScreen()) this.onTrackerChecks++;
 				}
-				if (System.currentTimeMillis() % 10 == 0) {
+				if (System.currentTimeMillis() % 10 == 0 && System.currentTimeMillis() > startTime + 200) {
 					timer.setLabel("Time left: " + Double.toString((int)(100 * (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime - pauseBank)) / 1000d) / 100d));
 					if (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime - pauseBank) <= 0) {
 						p = new Physics();

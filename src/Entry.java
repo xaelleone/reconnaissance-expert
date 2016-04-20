@@ -14,8 +14,10 @@ public class Entry {
 	public ArrayList<EyeEntry> eyeData;
 	public Tuple canvasPosOnScreen;
 	public boolean earlyJoystick;
+	public double onTrackerPercentage;
+	public int toggleCount;
 	
-	public Entry (Trial tr, int a, double meanDist, double startTime, int counter, ArrayList<EyeEntry> gazeData, Tuple canvas, boolean noDetection, double spent) {
+	public Entry (Trial tr, int a, double meanDist, double startTime, int counter, ArrayList<EyeEntry> gazeData, double trackerPercentage, int toggles, Tuple canvas, boolean noDetection, double spent) {
 		t = tr;
 		resolveAnswer (a);
 		meanDistance = meanDist;
@@ -25,6 +27,8 @@ public class Entry {
 		eyeData = new ArrayList<EyeEntry>(gazeData);
 		canvasPosOnScreen = canvas;	
 		earlyJoystick = noDetection;
+		onTrackerPercentage = trackerPercentage;
+		toggleCount = toggles;
 	}
 	
 	private void resolveAnswer (int a) {
@@ -126,14 +130,6 @@ public class Entry {
 			}
 		}
 		return "???"; //unclear what occurred
-	}
-	
-	public double onTrackerPercentage () {
-		double sum = 0;
-		for (EyeEntry data : eyeData) {
-			if (data.onTrackerScreen) sum++;
-		}
-		return sum / eyeData.size();
 	}
 	/*public boolean enemyContained;
 	public boolean automationRecommendedEnemy;

@@ -19,6 +19,7 @@ detection task columns:
 16 - 17. first fixation left and right (actually at end)
 18 - 22. fixation duration
 next - on tracker percentage
+toggle count
 file names
 
 poll output:
