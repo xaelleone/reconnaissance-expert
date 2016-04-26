@@ -413,6 +413,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 	private void putRandomImages () {
 		for (GImage im : imagesToUse) {
 			this.remove(im);
+			im.getImage().flush();
 		}
 		/*if (inPracticeMode) {
 			getPracticeImages();
@@ -845,7 +846,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 				}				
 				/*if (System.currentTimeMillis() % 1000 == 0)
 					seed = Math.random();*/
-				if (System.currentTimeMillis() % 30 == 0) {
+				if (System.currentTimeMillis() % 30 == 0 && System.currentTimeMillis() > startTime + 200) {
 					joystick.poll();
 					if (!pressedButton) {
 						if (joystick.getComponents()[0].getPollData() > 0.5) { //trigger
@@ -891,7 +892,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 					this.totalTrackerChecks++;
 					if (this.isOnTrackerScreen()) this.onTrackerChecks++;
 				}
-				if (System.currentTimeMillis() % 10 == 0 && System.currentTimeMillis() > startTime + 200) {
+				if (System.currentTimeMillis() % 10 == 0 && System.currentTimeMillis() > startTime + 400) {
 					timer.setLabel("Time left: " + Double.toString((int)(100 * (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime - pauseBank)) / 1000d) / 100d));
 					if (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime - pauseBank) <= 0) {
 						p = new Physics();

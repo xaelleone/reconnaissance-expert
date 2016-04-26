@@ -6,7 +6,7 @@ public class TrackerConstants {
 	public static final double[] AUTOMATION_CORRECT_PERCENTAGES = new double[] {0.7, 0.8, 0.9};
 	
 	public static final double TRIAL_LENGTH_MS = 10000;
-	public static final int TRIAL_COUNT = 200; //edit this to change the number of trials
+	public static final int TRIAL_COUNT = 100; //edit this to change the number of trials
 	
 	public static final int EFFECTIVE_PRACTICE_TRIAL_COUNT = 8;
 	
