@@ -448,7 +448,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 	}
 	
 	private void addEntry (int answer) {
-		entries.add(new Entry(allTrials.get(counter - 1), answer, inCircleSteps * 1.0 / totalTimeSteps, startTime, counter, currentGazeDataSet, new Tuple(this.getGCanvas().getLocationOnScreen()), inPracticeMode && counter < 5, timeSpent));
+		//entries.add(new Entry(allTrials.get(counter - 1), answer, inCircleSteps * 1.0 / totalTimeSteps, startTime, counter, currentGazeDataSet, new Tuple(this.getGCanvas().getLocationOnScreen()), inPracticeMode && counter < 5, timeSpent));
 	}
 	
 	private void addTarget () {
@@ -777,7 +777,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
  -        		if (gazeData.smoothedCoordinates.x - this.getGCanvas().getLocationOnScreen().x < TrackerConstants.SCREEN_DIVISION_X) leftCount++;
  -        		totalTimeSteps++;
         		 */
-        		currentGazeDataSet.add(new EyeEntry(gazeData));
+        		//currentGazeDataSet.add(new EyeEntry(gazeData));
         	
             }
         };
@@ -838,7 +838,7 @@ public class Tracker extends GraphicsProgram implements MouseMotionListener {
 					//if (cursor.getxX() + cursor.getWidth() < TrackerConstants.SCREEN_DIVISION_X && cursor.isVisible()) cursor.setVisible(false);
 				}	
 				if (System.currentTimeMillis() % 200 == 0) {
-					entries.addTrackerEntry(new TrackerEntry(counter, p.cursor, p.mouseDiff)); //seldom do this
+					//entries.addTrackerEntry(new TrackerEntry(counter, p.cursor, p.mouseDiff)); //seldom do this
 				}
 				if (System.currentTimeMillis() % 10 == 0) {
 					timer.setLabel("Time left: " + Double.toString((int)(100 * (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime - pauseBank)) / 1000d) / 100d));
