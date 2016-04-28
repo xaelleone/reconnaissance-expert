@@ -332,6 +332,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		Scanner fin = new Scanner(new BufferedReader(new FileReader("practiceImageSets.txt")));
 		String[] splitted;
 		Trial temp;
+		int base = TrackerConstants.TRACKER_ONLY_PRACTICE_COUNT;
 		for (int i = 0; fin.hasNextLine(); i++) {
 			temp = new Trial();
 			splitted = fin.nextLine().split(" ");
@@ -353,30 +354,30 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 			else if (isBinaryAlarm) {
 				temp.color = QuotaSet.LIKELIHOOD_COLORS[3];
 				temp.clip = null;
-				if (i == 30 || i == 32 || i == 34 || i == 36) {
+				if (i == base || i == base + 2 || i == base + 4 || i == base + 6) {
 					temp.color = Color.RED;
 					temp.clip = "sounds/danger.wav";
 				}
-				else if (i == 31 || i == 33 || i == 35 || i == 37) {
+				else if (i == base + 1 || i == base + 3 || i == base + 5 || i == base + 7) {
 					temp.clip = "sounds/clear.wav";
 				}
 			}
 			else {
 				temp.color = QuotaSet.LIKELIHOOD_COLORS[3];
 				temp.clip = null;
-				if (i == 30 || i == 32) {
+				if (i == base || i == base + 2) {
 					temp.color = Color.RED;
 					temp.clip = "sounds/danger.wav";
 				}
-				if (i == 31 || i == 33) {
+				if (i == base + 1 || i == base + 3) {
 					temp.color = QuotaSet.LIKELIHOOD_COLORS[3];
 					temp.clip = "sounds/clear.wav";
 				}
-				if (i == 34 || i == 36) {
+				if (i == base + 4 || i == base + 6) {
 					temp.color = QuotaSet.LIKELIHOOD_COLORS[1];
 					temp.clip = "sounds/caution.wav";
 				}
-				if (i == 35 || i == 37) {
+				if (i == base + 5 || i == base + 7) {
 					temp.color = QuotaSet.LIKELIHOOD_COLORS[2];
 					temp.clip = "sounds/possible.wav";
 				}
@@ -428,7 +429,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		if (counter == 0) return;
 		Trial t = allTrials.get(counter - 1);
 		imagesToUse = new ArrayList<GImage>();
-		if (!inPracticeMode || counter >= 31) {
+		if (!inPracticeMode || counter > TrackerConstants.TRACKER_ONLY_PRACTICE_COUNT) {
 			for (String s : t.imageSet) {
 				imagesToUse.add(new GImage(s));
 			}
@@ -479,7 +480,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 	}
 	
 	private void addEntry (int answer) {
-		entries.add(new Entry(allTrials.get(counter - 1), answer, inCircleSteps * 1.0 / totalTimeSteps, startTime, counter, currentGazeDataSet, this.onTrackerChecks * 1.0 / this.totalTrackerChecks, this.toggles, new Tuple(this.getGCanvas().getLocationOnScreen()), inPracticeMode && counter <= 30, timeSpent));
+		entries.add(new Entry(allTrials.get(counter - 1), answer, inCircleSteps * 1.0 / totalTimeSteps, startTime, counter, currentGazeDataSet, this.onTrackerChecks * 1.0 / this.totalTrackerChecks, this.toggles, new Tuple(this.getGCanvas().getLocationOnScreen()), inPracticeMode && counter <= TrackerConstants.TRACKER_ONLY_PRACTICE_COUNT, timeSpent));
 	}
 	
 	private void addTarget () {
@@ -511,7 +512,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		p.mouseDiff = (new Tuple(x, y)).scalarMultiple(TrackerConstants.JOYSTICK_SENSITIVITY);
 	}
 	
-	public void keyPressed (KeyEvent e) {
+	/*public void keyPressed (KeyEvent e) {
 		if (e.getKeyCode() == KeyEvent.VK_Z || e.getKeyCode() == KeyEvent.VK_Y) {
 			audio.play("sounds/ack.wav");
 			audio = new AudioPlayer();
@@ -522,7 +523,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 			audio = new AudioPlayer();
 			addEntry(1);
 		}
-	}
+	}*/
 	
 	private void pause () {
 		running = false;
@@ -558,7 +559,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 	
 	private void incrementTrialNumber () { 
 		pause();
-		if (!inPracticeMode || (counter >= 31 && counter < 39)) {
+		if (!inPracticeMode || (counter > TrackerConstants.TRACKER_ONLY_PRACTICE_COUNT && counter <= TrackerConstants.TRACKER_ONLY_PRACTICE_COUNT + TrackerConstants.EFFECTIVE_PRACTICE_TRIAL_COUNT)) {
 			if (entries.getMostRecentEntry().getScore() > 0) {
 				audio.play("sounds/goodjob.wav");
 				audio = new AudioPlayer();
@@ -571,7 +572,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		if (counter >= 1) {
 			displayRoundFeedback();
 		}
-		if (!inPracticeMode || counter >= 31) {
+		if (!inPracticeMode || counter > TrackerConstants.TRACKER_ONLY_PRACTICE_COUNT) {
 			displayAndLogPolls();
 		}
 		if (!inPracticeMode && counter == TrackerConstants.TRIAL_COUNT) {
@@ -589,7 +590,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 					JOptionPane.PLAIN_MESSAGE
 			);
 		}
-		if (counter == 38 && inPracticeMode) {
+		if (counter == TrackerConstants.TRACKER_ONLY_PRACTICE_COUNT + TrackerConstants.EFFECTIVE_PRACTICE_TRIAL_COUNT && inPracticeMode) {
 			inPracticeMode = false;
 			counter = 0; //will get incremented
 			loadImages();
@@ -597,13 +598,14 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 					"End of practice",
 					JOptionPane.PLAIN_MESSAGE
 			);
+			new PracticeDataOutput(entries).output();
 			entries = new DataAggregator(System.currentTimeMillis(), fileName, reliability, isBinaryAlarm, isControlRun, false);
 		}
 		countdown();
 		unpause();
 		counter++;
 		if (inPracticeMode) {
-			trialNumber.setLabel("Trial: " + counter + "/" + 38);
+			trialNumber.setLabel("Trial: " + counter + "/" + (TrackerConstants.TRACKER_ONLY_PRACTICE_COUNT + TrackerConstants.EFFECTIVE_PRACTICE_TRIAL_COUNT));
 			otherPracticeTip.setLabel("Score: " + formatScore(entries.getScore(), false) + "/" + 15 * counter);
 			/*trialNumber.setLabel(practiceText.get(counter * 2));
 			otherPracticeTip.setLabel(practiceText.get(counter * 2 + 1));*/
@@ -759,7 +761,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 	
 	private void displayRoundFeedback () {
 		Entry last = entries.getMostRecentEntry();
-		JOptionPane.showMessageDialog(this, new JLabel("<html><font size=5>" + ((inPracticeMode && counter <= 30) ? "" : (isControlRun ? "" : "Detector recommendation: " + getRecommendationString(last.t.color) + "<br>") +
+		JOptionPane.showMessageDialog(this, new JLabel("<html><font size=5>" + ((inPracticeMode && counter <= TrackerConstants.TRACKER_ONLY_PRACTICE_COUNT) ? "" : (isControlRun ? "" : "Detector recommendation: " + getRecommendationString(last.t.color) + "<br>") +
 				(last.outOfTime ? "You ran out of time." : "Your identification: " + 
 				(last.identifiedEnemy ? "DANGER" : "CLEAR") + "<br>" + 
 				"You are " + (last.identifiedEnemy == last.t.containsEnemy ? "<font color=green><b>CORRECT</b></font>." : "<font color=red><b>INCORRECT</b></font>")) + "<br>" + 
@@ -847,6 +849,13 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		double lastPressed = System.currentTimeMillis();
 		TrackerEntry te;
 		double loopTime;
+		double lastTrackerCheck = System.currentTimeMillis();
+		try {
+			Thread.sleep(2000);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		while (true) {
 			System.out.print(running?"":""); //it is unclear why this is required, but something needs to check the running variable
 			if (audio.playCompleted) audio.close();
@@ -859,7 +868,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 				loopTime = System.currentTimeMillis();
 				/*if (System.currentTimeMillis() % 1000 == 0)
 					seed = Math.random();*/
-				if (loopTime % 30 == 0 && loopTime > startTime + 400) {
+				if (loopTime % 30 == 0/* && loopTime > startTime + 400*/) {
 					joystick.poll();
 					if (!pressedButton) {
 						if (joystick.getComponents()[0].getPollData() > 0.5) { //trigger
@@ -899,13 +908,14 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 					lastAngle += seed / 1500d;*/
 					//if (cursor.getxX() + cursor.getWidth() < TrackerConstants.SCREEN_DIVISION_X && cursor.isVisible()) cursor.setVisible(false);
 				}	
-				if (loopTime % 200 == 0 && !inPracticeMode) {
+				if (loopTime % 200 == 0 && counter >= 1 && loopTime - lastTrackerCheck > 100) {
+					lastTrackerCheck = System.currentTimeMillis();
 					te = new TrackerEntry(counter, p.cursor, p.mouseDiff, this.isOnTrackerScreen());
 					entries.addTrackerEntry(te); //seldom do this
 					this.totalTrackerChecks++;
 					if (this.isOnTrackerScreen()) this.onTrackerChecks++;
 				}
-				if (loopTime % 10 == 0 && loopTime > startTime + 800) {
+				if (loopTime % 10 == 0/* && loopTime > startTime + 1200*/) {
 					timer.setLabel("Time left: " + Double.toString((int)(100 * (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime - pauseBank)) / 1000d) / 100d));
 					if (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime - pauseBank) <= 0) {
 						p = new Physics();
