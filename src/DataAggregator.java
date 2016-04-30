@@ -137,6 +137,7 @@ public class DataAggregator {
 				break;
 			}
 			quadraticSum += Math.pow(trackerData.get(i).position.x, 2) + Math.pow(trackerData.get(i).position.y, 2);
+			count++;
 		}
 		return Math.sqrt(quadraticSum / count);
 	}
