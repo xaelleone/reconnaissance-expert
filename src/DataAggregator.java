@@ -156,7 +156,7 @@ public class DataAggregator {
 				e.timeSpent + " " + 
 				f.format(e.getDetectionScore()) + " " +
 				f.format(e.getTrackerScore()) + " " + 
-				f.format(rms)
+				f.format(rms) + " "
 				);
 		/*for (double d : e.percentageDwell()) {
 			fout.print(f.format(d) + " ");

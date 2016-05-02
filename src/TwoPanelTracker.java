@@ -635,6 +635,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		this.totalTrackerChecks = 0;
 		this.onTrackerChecks = 0;
 		this.toggles = 0;
+		this.timeSpent = TrackerConstants.TRIAL_LENGTH_MS;
 		preEnteredAnswer = -1;
 	}
 	
