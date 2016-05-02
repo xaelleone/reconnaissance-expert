@@ -141,13 +141,15 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		initCursorSwarm();
 		initRecommender();
 		
-		timer = new GLabel("0");
-		timer.setColor(Color.WHITE);
-		timer.setFont(new Font("Arial", Font.BOLD, 14));
-		timer.setLocation(TrackerConstants.TIMER_Y, TrackerConstants.TIMER_Y);
-		tList.add(timer);
-		pList.add(timer);
-		this.add(timer);
+		if (timer == null) {
+			timer = new GLabel("0");
+			timer.setColor(Color.WHITE);
+			timer.setFont(new Font("Arial", Font.BOLD, 14));
+			timer.setLocation(TrackerConstants.TIMER_Y, TrackerConstants.TIMER_Y);
+			tList.add(timer);
+			pList.add(timer);
+			this.add(timer);
+		}
 		
 		//addTooltip(); deprecated thing that says press z or x or whatever
 		
