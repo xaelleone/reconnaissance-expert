@@ -148,6 +148,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		tList.add(timer);
 		pList.add(timer);
 		this.add(timer);
+		
 		//addTooltip(); deprecated thing that says press z or x or whatever
 		
 		p = new Physics();
@@ -289,6 +290,12 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		}
 		
 		toPractice = new JButton("Start");
+		toPractice.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				practice();
+			}
+		});
 		this.add(toPractice, TrackerConstants.INIT_SCREEN_BUFFER, 8 * TrackerConstants.LINE_HEIGHT + TrackerConstants.INIT_SCREEN_BUFFER);
 	}
 	
@@ -802,12 +809,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 	}
 	
 	public void run () {
-		toPractice.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				practice();
-			}
-		});
+		
 		close.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -850,12 +852,6 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		TrackerEntry te;
 		double loopTime;
 		double lastTrackerCheck = System.currentTimeMillis();
-		try {
-			Thread.sleep(2000);
-		} catch (InterruptedException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
 		while (true) {
 			System.out.print(running?"":""); //it is unclear why this is required, but something needs to check the running variable
 			if (audio.playCompleted) audio.close();
@@ -916,6 +912,15 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 					if (this.isOnTrackerScreen()) this.onTrackerChecks++;
 				}
 				if (loopTime % 10 == 0/* && loopTime > startTime + 1200*/) {
+					if (timer == null) {
+						timer = new GLabel("0");
+						timer.setColor(Color.WHITE);
+						timer.setFont(new Font("Arial", Font.BOLD, 14));
+						timer.setLocation(TrackerConstants.TIMER_Y, TrackerConstants.TIMER_Y);
+						tList.add(timer);
+						pList.add(timer);
+						this.add(timer);
+					}
 					timer.setLabel("Time left: " + Double.toString((int)(100 * (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime - pauseBank)) / 1000d) / 100d));
 					if (TrackerConstants.TRIAL_LENGTH_MS - (System.currentTimeMillis() - startTime - pauseBank) <= 0) {
 						p = new Physics();
