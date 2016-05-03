@@ -19,13 +19,13 @@ public class PracticeDataOutput {
 			Entry en;
 			for (int i = 0; i < entries.entryList.size(); i++) {
 				en = entries.entryList.get(i);
-				fout.println(en.trialNumber + " " + new Timestamp((long)en.absoluteStartTime) + " " + entries.f.format(en.absoluteStartTime - entries.totalStartTime) + " " + en.meanDistance + " "  + rms[i]);
+				fout.println(en.trialNumber + " " + new Timestamp((long)en.absoluteStartTime) + " " + (en.absoluteStartTime - entries.totalStartTime) + " " + en.meanDistance + " "  + rms[i]);
 			}
 			fout.println("=============");
 			for (TrackerEntry t : entries.trackerData) {
 				fout.println(t.trialNumber + " " + 
 						new Timestamp((long)t.absoluteTime) + " " +
-						entries.f.format(t.absoluteTime - entries.totalStartTime) + " " + 
+						(t.absoluteTime - entries.totalStartTime) + " " + 
 						t.position + " " +
 						t.joystickPos);
 			}

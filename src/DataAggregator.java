@@ -16,7 +16,7 @@ public class DataAggregator {
 	public double reliability;
 	public boolean isBinaryAlarm;
 	public boolean isControl;
-	public NumberFormat f = new DecimalFormat("#0.00");
+	//public NumberFormat f = new DecimalFormat("#0.00");
 	public boolean isPracticeRun;
 	public PrintWriter detectionOut;
 	public PrintWriter eyeOut;
@@ -95,7 +95,7 @@ public class DataAggregator {
 		}
 		PrintWriter fout = eyeOut;
 		for (EyeEntry data : e.eyeData) {
-			fout.println(e.trialNumber + " " + data.g.timeStampString + " " + f.format(data.startTime - totalStartTime) + " " + data.g.isFixated + " " + 
+			fout.println(e.trialNumber + " " + data.g.timeStampString + " " + (data.startTime - totalStartTime) + " " + data.g.isFixated + " " + 
 					new Tuple(data.g.rawCoordinates).add(e.canvasPosOnScreen.scalarMultiple(-1)) + " " + 
 					new Tuple(data.g.smoothedCoordinates).add(e.canvasPosOnScreen.scalarMultiple(-1)) + " " + 
 					new Tuple(data.g.leftEye.rawCoordinates).add(e.canvasPosOnScreen.scalarMultiple(-1)) + " " + 
@@ -115,7 +115,7 @@ public class DataAggregator {
 		PrintWriter fout = trackerOut;
 		fout.println(t.trialNumber + " " + 
 				new Timestamp((long)t.absoluteTime) + " " +
-				f.format(t.absoluteTime - this.totalStartTime) + " " + 
+				(t.absoluteTime - this.totalStartTime) + " " + 
 				t.position + " " +
 				t.joystickPos);
 	}
@@ -154,9 +154,9 @@ public class DataAggregator {
 				e.identifiedEnemy + " " + 
 				e.outOfTime + " " + 
 				e.timeSpent + " " + 
-				f.format(e.getDetectionScore()) + " " +
-				f.format(e.getTrackerScore()) + " " + 
-				f.format(rms) + " "
+				(e.getDetectionScore()) + " " +
+				(e.getTrackerScore()) + " " + 
+				(rms) + " "
 				);
 		/*for (double d : e.percentageDwell()) {
 			fout.print(f.format(d) + " ");
