@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -13,7 +14,9 @@ public class PracticeDataOutput {
 	public void output () {
 		String fileName = entries.fileNameBase + "practice.txt";
 		try {
-			PrintWriter fout = new PrintWriter(new FileWriter(fileName));
+			File temp = new File(fileName);
+			temp.getParentFile().mkdirs();
+			PrintWriter fout = new PrintWriter(new FileWriter(temp));
 			fout.println("SUMMARY");
 			double[] rms = computeRms();
 			Entry en;

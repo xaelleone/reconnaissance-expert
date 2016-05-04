@@ -894,6 +894,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 						else {
 							this.changeScreenRight();
 						}
+						if (!inPracticeMode) entries.addToggle(this.startTime, this.counter, this.isOnTrackerScreen());
 					}
 					moveJoystick(joystick.getComponents()[12].getPollData(), joystick.getComponents()[13].getPollData());
 					move = p.computeMove();
@@ -907,7 +908,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 					lastAngle += seed / 1500d;*/
 					//if (cursor.getxX() + cursor.getWidth() < TrackerConstants.SCREEN_DIVISION_X && cursor.isVisible()) cursor.setVisible(false);
 				}	
-				if (loopTime % 200 == 0 && counter >= 1 && loopTime - lastTrackerCheck > 100) {
+				if (loopTime % 100 == 0 && counter >= 1 && loopTime - lastTrackerCheck > 50) {
 					lastTrackerCheck = System.currentTimeMillis();
 					te = new TrackerEntry(counter, p.cursor, p.mouseDiff, this.isOnTrackerScreen());
 					entries.addTrackerEntry(te); //seldom do this

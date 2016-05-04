@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -19,12 +20,13 @@ public class DataAggregator {
 	//public NumberFormat f = new DecimalFormat("#0.00");
 	public boolean isPracticeRun;
 	public PrintWriter detectionOut;
-	public PrintWriter eyeOut;
+	//public PrintWriter eyeOut;
 	public PrintWriter pollOut;
 	public PrintWriter trackerOut;
+	public PrintWriter toggleOut;
 	
 	public DataAggregator (double startTime, String file, double r, boolean binary, boolean control, boolean practice) {
-		fileNameBase = file;
+		fileNameBase = "results" + File.separator + file;
 		entryList = new ArrayList<Entry>();
 		pollResults = new ArrayList<PollResult>();
 		trackerData = new ArrayList<TrackerEntry>();
@@ -40,6 +42,9 @@ public class DataAggregator {
 	private void openAllFiles () {
 		try {
 			if (!isPracticeRun) {
+				File toggleFile = new File(fileNameBase + "toggle_output.txt");
+				toggleFile.getParentFile().mkdirs();
+				toggleOut = new PrintWriter(new FileWriter(toggleFile));
 				detectionOut = new PrintWriter(new FileWriter(fileNameBase + "detection_output.txt"));
 				//eyeOut = new PrintWriter(new FileWriter(fileNameBase + "eye_output.txt"));
 				trackerOut = new PrintWriter(new FileWriter(fileNameBase + "tracker_output.txt"));
@@ -57,7 +62,7 @@ public class DataAggregator {
 	}
 	
 	private void modifyFileNameBase () {
-		fileNameBase += "_" + (isControl ? "c" : (isBinaryAlarm ? "b" : "l") + "_" + Integer.toString((int)(reliability * 100))) + "_";
+		fileNameBase += "_" + (isControl ? "c" : (isBinaryAlarm ? "b" : "l") + "_" + Integer.toString((int)(reliability * 100))) + File.separator;
 	}
 	
 	public void add (Entry e) {
@@ -68,6 +73,11 @@ public class DataAggregator {
 				printDetectionOutput(e);
 			}
 		}
+	}
+	
+	public void addToggle (double trialStartTime, int trial, boolean toTracker) {
+		long time = System.currentTimeMillis();
+		toggleOut.println(trial + " " + new Timestamp(time) + " " + (time - trialStartTime) + " " + toTracker);
 	}
 	
 	public void addPollResult (PollResult p) {
@@ -86,10 +96,11 @@ public class DataAggregator {
 			pollOut.close();
 			detectionOut.close();
 			trackerOut.close();
+			toggleOut.close();
 		}
 	}
 	
-	public void printEyeOutput (Entry e) {
+	/*public void printEyeOutput (Entry e) {
 		if (entryList.size() == 1) {
 			eyeOut.println(entryList.get(0).canvasPosOnScreen);
 		}
@@ -109,7 +120,7 @@ public class DataAggregator {
 					data.onTrackerScreen
 					);
 		}
-	}
+	}*/
 	
 	public void printTrackerOutput (TrackerEntry t) {
 		PrintWriter fout = trackerOut;

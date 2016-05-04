@@ -39,6 +39,14 @@ tracker output:
 5. cursor x (relative to origin)
 6. cursor y (relative to origin)
 
+toggle output:
+
+1. Trial number
+2. time stamp
+3. relative start time
+4. to tracker (TRUE if user switched to the tracker, FALSE if they switched to the images)
+note: all trials should start with false, should alternate
+
 eye output:
 
 1. Trial number
