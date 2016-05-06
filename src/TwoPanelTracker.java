@@ -2,7 +2,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.io.BufferedReader;
@@ -22,12 +21,6 @@ import javax.swing.JSlider;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-
-import com.theeyetribe.client.GazeManager;
-import com.theeyetribe.client.GazeManager.ApiVersion;
-import com.theeyetribe.client.GazeManager.ClientMode;
-import com.theeyetribe.client.IGazeListener;
-import com.theeyetribe.client.data.GazeData;
 
 import acm.graphics.GImage;
 import acm.graphics.GLabel;
@@ -674,7 +667,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 			temp = new Hashtable<Integer, JLabel>();
 			switch (i) {
 			case 0: //UGLY UGLY HOTFIX, WILL CHANGE EVENTUALLY
-				messages[0] = "How confident are you in completing the task without the detector?";
+				messages[0] = "How confident are you in completing both tasks without the detector?";
 				temp.put(0, new JLabel("<html>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0<br>Not confident at all</html>"));
 				temp = addIntermediateValues(temp);
 				temp.put(100, new JLabel("<html>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;100<br>Absolutely confident</html>"));
@@ -703,6 +696,14 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		return dict;
 	}
 	
+	private int getPreviousPollResult(int i) {
+		ArrayList<PollResult> res = entries.pollResults;
+		if (res.isEmpty()) {
+			return 50;
+		}
+		return res.get(res.size() - 1).results.get(i);
+	}
+	
 	private PollResult displayPoll (String[] message, ArrayList<Dictionary<Integer, JLabel>> labels) {
 		JFrame parent = new JFrame();
 		JOptionPane optionPane = new JOptionPane();
@@ -712,6 +713,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 			sliders[i] = getSlider(optionPane, labels.get(i));
 			sliders[i].setMajorTickSpacing(10);
 			sliders[i].setPaintTicks(true);
+			sliders[i].setValue(getPreviousPollResult(i));
 			sliders[i].addChangeListener(new ChangeListener() {
 		        public void stateChanged(ChangeEvent ce) {
 		            JSlider slider = (JSlider)ce.getSource();
@@ -769,12 +771,28 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		return s;
 	}
 	
+	private String convertTargetLocationToWords (int targetLocation) {
+		switch (targetLocation) {
+		case 0:
+			return "upper left";
+		case 1:
+			return "upper right";
+		case 2:
+			return "lower left";
+		default:
+			return "lower right"; 
+		}
+	}
+	
 	private void displayRoundFeedback () {
 		Entry last = entries.getMostRecentEntry();
-		JOptionPane.showMessageDialog(this, new JLabel("<html><font size=5>" + ((inPracticeMode && counter <= TrackerConstants.TRACKER_ONLY_PRACTICE_COUNT) ? "" : (isControlRun ? "" : "Detector recommendation: " + getRecommendationString(last.t.color) + "<br>") +
+		JOptionPane.showMessageDialog(this, new JLabel("<html><font size=5>" + ((inPracticeMode && counter <= TrackerConstants.TRACKER_ONLY_PRACTICE_COUNT) ? "" : 
+				(last.t.containsEnemy ? "There was an enemy in the " + convertTargetLocationToWords(last.t.targetLocation()) : "There was no enemy") + ".<br>" +
+				(isControlRun ? "" : "Detector recommendation: " + getRecommendationString(last.t.color) + "<br>") +
 				(last.outOfTime ? "You ran out of time." : "Your identification: " + 
 				(last.identifiedEnemy ? "DANGER" : "CLEAR") + "<br>" + 
-				"You are " + (last.identifiedEnemy == last.t.containsEnemy ? "<font color=green><b>CORRECT</b></font>." : "<font color=red><b>INCORRECT</b></font>")) + "<br>" + 
+				"You are " + (last.identifiedEnemy == last.t.containsEnemy ? "<font color=green><b>CORRECT</b></font>" : "<font color=red><b>INCORRECT</b></font>.=")) + ".<br>" + 
+				(isControlRun ? "" : "The detector recommendation was " + (((getRecommendationString(last.t.color) == "DANGER" || getRecommendationString(last.t.color) == "CAUTION") == last.t.containsEnemy) ? "<font color=green><b>CORRECT</b></font>" : "<font color=red><b>INCORRECT</b></font>")) + ".<br>" +
 				"Your detection score: " + formatScore(entries.getDetectionScore(), false) + " <b>(" + formatScore(last.getDetectionScore(), true) + ")</b> <br>") +
 				"Your tracker score: " + formatScore(entries.getTrackerScore(), false) + " <b>(" + formatScore(last.getTrackerScore(), true) + ")</b> <br>" +
 				"Total score: " + formatScore(entries.getScore(), false) + " <b>(" + formatScore(last.getScore(), true) + ")</b><br></font></html>"),
