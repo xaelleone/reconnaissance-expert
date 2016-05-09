@@ -50,14 +50,10 @@ public class Entry {
 		if (earlyJoystick) return 0;
 		double score = 0;
 		if (identifiedEnemy == t.containsEnemy) {
-			score += 5;
+			score += 2;
 		}
-		else {
-			score -= 5;
-		}
-		score -= timeSpent / 5000;
-		
-		return score;
+		score -= timeSpent / 10000;
+		return Math.max(score, 0); //cannot be negative
 	}
 	
 	public double getTrackerScore () {

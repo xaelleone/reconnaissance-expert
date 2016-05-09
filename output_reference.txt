@@ -13,6 +13,7 @@ detection task columns:
 6. response given (Y = present, N = absent)
 7. ran out of time (true = ran out of time)
 8. time elapsed (ms)
+time until first toggle
 9. detection score change
 10. tracking task score change
 11 - 15. percentage dwell (0, 1, 2, 3 enumerated like column 4, then 4 is tracker area, 5 is elsewhere)

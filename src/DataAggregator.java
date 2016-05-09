@@ -24,6 +24,7 @@ public class DataAggregator {
 	public PrintWriter pollOut;
 	public PrintWriter trackerOut;
 	public PrintWriter toggleOut;
+	public long lastToggleTime = -1;
 	
 	public DataAggregator (double startTime, String file, double r, boolean binary, boolean control, boolean practice) {
 		fileNameBase = "results" + File.separator + file;
@@ -78,6 +79,9 @@ public class DataAggregator {
 	public void addToggle (double trialStartTime, int trial, boolean toTracker) {
 		long time = System.currentTimeMillis();
 		toggleOut.println(trial + " " + new Timestamp(time) + " " + (time - trialStartTime) + " " + toTracker);
+		if (this.lastToggleTime == -1) {
+			lastToggleTime = time;
+		}
 	}
 	
 	public void addPollResult (PollResult p) {
@@ -165,6 +169,7 @@ public class DataAggregator {
 				e.identifiedEnemy + " " + 
 				e.outOfTime + " " + 
 				e.timeSpent + " " + 
+				(lastToggleTime - e.absoluteStartTime) + " " + 
 				(e.getDetectionScore()) + " " +
 				(e.getTrackerScore()) + " " + 
 				(rms) + " "
@@ -182,6 +187,7 @@ public class DataAggregator {
 			fout.print(stripFileName(s) + " ");
 		}
 		fout.println();
+		lastToggleTime = -1;
 	}
 	
 	public double getScore () {

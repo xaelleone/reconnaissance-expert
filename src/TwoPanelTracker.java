@@ -7,6 +7,8 @@ import java.awt.event.MouseMotionListener;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -73,6 +75,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 	private double timeSpent;
 	private ArrayList<GObject> pList = new ArrayList<GObject>();
 	private ArrayList<GObject> tList = new ArrayList<GObject>();
+	public NumberFormat f = new DecimalFormat("#0.0");
 	
 	/*
 	 * TODO: 
@@ -667,19 +670,19 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 			temp = new Hashtable<Integer, JLabel>();
 			switch (i) {
 			case 0: //UGLY UGLY HOTFIX, WILL CHANGE EVENTUALLY
-				messages[0] = "How confident are you in completing both tasks without the detector?";
+				messages[0] = "<html>How confident are you in completing both tasks <b>without</b> the detector?</html>";
 				temp.put(0, new JLabel("<html>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0<br>Not confident at all</html>"));
 				temp = addIntermediateValues(temp);
 				temp.put(100, new JLabel("<html>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;100<br>Absolutely confident</html>"));
 				break;
 			case 1:
-				messages[1] = "How reliable are the automated detector's recommendations?";
-				temp.put(0,  new JLabel("<html>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0<br>Not reliable at all</html>"));
+				messages[1] = "How accurate is the automated threat detector?";
+				temp.put(0,  new JLabel("<html>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0<br>Not accurate at all</html>"));
 				temp = addIntermediateValues(temp);
-				temp.put(100,  new JLabel("<html>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;100<br>Absolutely reliable</html>"));
+				temp.put(100,  new JLabel("<html>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;100<br>Absolutely accurate</html>"));
 				break;
 			default:
-				messages[2] = "How much do you trust the automated detector's recommendations?";
+				messages[2] = "How much do you trust the automated threat detector?";
 				temp.put(0, new JLabel("<html>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0<br>I don't trust it at all</html>"));
 				temp = addIntermediateValues(temp);
 				temp.put(100, new JLabel("<html>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;100<br>I absolutely trust it</html>"));
@@ -766,12 +769,12 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 	}
 	
 	private String formatScore (double d, boolean addPlus) {
-		String s = Long.toString(Math.round(d));
+		String s = f.format(d);
 		if (addPlus && (int)d >= 0) s = "+" + s;
 		return s;
 	}
 	
-	private String convertTargetLocationToWords (int targetLocation) {
+	/*private String convertTargetLocationToWords (int targetLocation) {
 		switch (targetLocation) {
 		case 0:
 			return "upper left";
@@ -782,20 +785,27 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		default:
 			return "lower right"; 
 		}
+	}*/
+	
+	private String pad (String s, int len) {
+		//accidentally quadratic, whatever
+		for (int i = 0; i < len - s.length(); i++) {
+			s += " ";
+		}
+		return s;
 	}
 	
 	private void displayRoundFeedback () {
 		Entry last = entries.getMostRecentEntry();
-		JOptionPane.showMessageDialog(this, new JLabel("<html><font size=5>" + ((inPracticeMode && counter <= TrackerConstants.TRACKER_ONLY_PRACTICE_COUNT) ? "" : 
-				(last.t.containsEnemy ? "There was an enemy in the " + convertTargetLocationToWords(last.t.targetLocation()) : "There was no enemy") + ".<br>" +
-				(isControlRun ? "" : "Detector recommendation: " + getRecommendationString(last.t.color) + "<br>") +
-				(last.outOfTime ? "You ran out of time." : "Your identification: " + 
-				(last.identifiedEnemy ? "DANGER" : "CLEAR") + "<br>" + 
-				"You are " + (last.identifiedEnemy == last.t.containsEnemy ? "<font color=green><b>CORRECT</b></font>" : "<font color=red><b>INCORRECT</b></font>.=")) + ".<br>" + 
-				(isControlRun ? "" : "The detector recommendation was " + (((getRecommendationString(last.t.color) == "DANGER" || getRecommendationString(last.t.color) == "CAUTION") == last.t.containsEnemy) ? "<font color=green><b>CORRECT</b></font>" : "<font color=red><b>INCORRECT</b></font>")) + ".<br>" +
-				"Your detection score: " + formatScore(entries.getDetectionScore(), false) + " <b>(" + formatScore(last.getDetectionScore(), true) + ")</b> <br>") +
-				"Your tracker score: " + formatScore(entries.getTrackerScore(), false) + " <b>(" + formatScore(last.getTrackerScore(), true) + ")</b> <br>" +
-				"Total score: " + formatScore(entries.getScore(), false) + " <b>(" + formatScore(last.getScore(), true) + ")</b><br></font></html>"),
+		JOptionPane.showMessageDialog(this, new JLabel("<html><font size=10>" + ((inPracticeMode && counter <= TrackerConstants.TRACKER_ONLY_PRACTICE_COUNT) ? "" : 
+				"<table>" + 
+				"<tr><td>True state:</td><td>" + (last.t.containsEnemy ? "DANGER" : "CLEAR") + "</td></tr>" +
+				(isControlRun ? "" : "<tr><td>Recommendation:</td><td>" + getRecommendationString(last.t.color) + " - " + (((getRecommendationString(last.t.color) == "DANGER" || getRecommendationString(last.t.color) == "CAUTION") == last.t.containsEnemy) ? "<font color=green><b>CORRECT</b></font>" : "<font color=red><b>INCORRECT</b></font>") + "</td></tr>") +
+				"<tr><td>Your identification:</td><td>" + (last.outOfTime ? "ran out of time" : (last.identifiedEnemy ? "DANGER" : "CLEAR") + " - " + 
+				(last.identifiedEnemy == last.t.containsEnemy ? "<font color=green><b>CORRECT</b></font>" : "<font color=red><b>INCORRECT</b></font>.=")) + "</td></tr>" +
+				"<tr><td>Your detection score:</td><td>" + formatScore(entries.getDetectionScore(), false) + " <b>(" + formatScore(last.getDetectionScore(), true) + ")</b> </td></tr>") +
+				"<tr><td>Your tracker score:</td><td>" + formatScore(entries.getTrackerScore(), false) + " <b>(" + formatScore(last.getTrackerScore(), true) + ")</b> </td></tr>" +
+				"<tr><td>Total score:</td>" + formatScore(entries.getScore(), false) + " <b>(" + formatScore(last.getScore(), true) + ")</b></td></tr></table></font></html>"),
 				"Results",
 				JOptionPane.PLAIN_MESSAGE
 		);
