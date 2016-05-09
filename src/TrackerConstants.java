@@ -20,6 +20,8 @@ public class TrackerConstants {
 	
 	public static final int RIGHT_BUFFER = 25;
 	
+	public static final double[] RMS_THRESHOLDS = new double[] {16.5, 22.3, 28.1, 33.9, 39.7, 45.5, 51.3, 57.1, 62.9, 68.7};
+	
 	public static final int JOYSTICK_INPUT_NUMBER = 2;
 	public static final int NUM_POLLS = 3;
 	public static final int SCREEN_DIVISION_X = 1200;

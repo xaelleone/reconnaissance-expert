@@ -158,6 +158,9 @@ public class DataAggregator {
 	}
 	
 	public void printDetectionOutput (Entry e) {
+		if (lastToggleTime == -1) {
+			lastToggleTime = (long) (e.absoluteStartTime - 1);
+		}
 		double rms = this.computeLastEntryRms(e.trialNumber);
 		PrintWriter fout = detectionOut;
 		fout.print(e.trialNumber + " " + 

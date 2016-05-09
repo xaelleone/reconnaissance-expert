@@ -895,7 +895,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 				loopTime = System.currentTimeMillis();
 				/*if (System.currentTimeMillis() % 1000 == 0)
 					seed = Math.random();*/
-				if (loopTime % 30 == 0/* && loopTime > startTime + 400*/) {
+				if (loopTime % 33 == 0/* && loopTime > startTime + 400*/) {
 					joystick.poll();
 					if (!pressedButton) {
 						if (joystick.getComponents()[0].getPollData() > 0.5) { //trigger
@@ -936,7 +936,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 					lastAngle += seed / 1500d;*/
 					//if (cursor.getxX() + cursor.getWidth() < TrackerConstants.SCREEN_DIVISION_X && cursor.isVisible()) cursor.setVisible(false);
 				}	
-				if (loopTime % 100 == 0 && counter >= 1 && loopTime - lastTrackerCheck > 50) {
+				if (loopTime % 50 == 0 && counter >= 1 && loopTime - lastTrackerCheck > 20) {
 					lastTrackerCheck = System.currentTimeMillis();
 					te = new TrackerEntry(counter, p.cursor, p.mouseDiff, this.isOnTrackerScreen());
 					entries.addTrackerEntry(te); //seldom do this
