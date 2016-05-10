@@ -612,13 +612,13 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		counter++;
 		if (inPracticeMode) {
 			trialNumber.setLabel("Trial: " + counter + "/" + (TrackerConstants.TRACKER_ONLY_PRACTICE_COUNT + TrackerConstants.EFFECTIVE_PRACTICE_TRIAL_COUNT));
-			otherPracticeTip.setLabel("Score: " + formatScore(entries.getScore(), false) + "/" + 12 * counter);
+			otherPracticeTip.setLabel("Score: " + formatScore(entries.getScore(), false) + "/" + 12 * (counter - 1));
 			/*trialNumber.setLabel(practiceText.get(counter * 2));
 			otherPracticeTip.setLabel(practiceText.get(counter * 2 + 1));*/
 		}
 		else {
 			trialNumber.setLabel("Trial: " + counter + "/" + TrackerConstants.TRIAL_COUNT);
-			otherPracticeTip.setLabel("Score: " + formatScore(entries.getScore(), false) + "/" + 12 * counter);
+			otherPracticeTip.setLabel("Score: " + formatScore(entries.getScore(), false) + "/" + 12 * (counter - 1));
 			this.currentGazeDataSet = new ArrayList<EyeEntry>();
 		} 
 	}
