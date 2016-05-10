@@ -16,6 +16,7 @@ public class Entry {
 	public boolean earlyJoystick;
 	public double onTrackerPercentage;
 	public int toggleCount;
+	public double rms = 0;
 	
 	public Entry (Trial tr, int a, double meanDist, double startTime, int counter, ArrayList<EyeEntry> gazeData, double trackerPercentage, int toggles, Tuple canvas, boolean noDetection, double spent) {
 		t = tr;
@@ -47,13 +48,19 @@ public class Entry {
 	}
 	
 	public double getDetectionScore () {
-		if (earlyJoystick) return 0;
+		for (int i = 0; i < TrackerConstants.RMS_THRESHOLDS.length; i++) {
+			if (rms < TrackerConstants.RMS_THRESHOLDS[i]) {
+				return 10 - i;
+			}
+		}
+		return 0;
+		/*if (earlyJoystick) return 0;
 		double score = 0;
 		if (identifiedEnemy == t.containsEnemy) {
 			score += 2;
 		}
 		score -= timeSpent / 10000;
-		return Math.max(score, 0); //cannot be negative
+		return Math.max(score, 0); //cannot be negative old method */
 	}
 	
 	public double getTrackerScore () {

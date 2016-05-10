@@ -144,7 +144,7 @@ public class DataAggregator {
 		fout.println();
 	}
 	
-	public double computeLastEntryRms(int trial) {
+	public void computeLastEntryRms(int trial) {
 		double quadraticSum = 0;
 		int count = 0;
 		for (int i = trackerData.size() - 1; i >= 0; i--) {
@@ -154,14 +154,13 @@ public class DataAggregator {
 			quadraticSum += Math.pow(trackerData.get(i).position.x, 2) + Math.pow(trackerData.get(i).position.y, 2);
 			count++;
 		}
-		return Math.sqrt(quadraticSum / count);
+		this.entryList.get(this.entryList.size() - 1).rms = Math.sqrt(quadraticSum / count);
 	}
 	
 	public void printDetectionOutput (Entry e) {
 		if (lastToggleTime == -1) {
 			lastToggleTime = (long) (e.absoluteStartTime - 1);
 		}
-		double rms = this.computeLastEntryRms(e.trialNumber);
 		PrintWriter fout = detectionOut;
 		fout.print(e.trialNumber + " " + 
 				new Timestamp((long)e.absoluteStartTime) + " " + 
@@ -175,7 +174,7 @@ public class DataAggregator {
 				(lastToggleTime - e.absoluteStartTime) + " " + 
 				(e.getDetectionScore()) + " " +
 				(e.getTrackerScore()) + " " + 
-				(rms) + " "
+				(e.rms) + " "
 				);
 		/*for (double d : e.percentageDwell()) {
 			fout.print(f.format(d) + " ");

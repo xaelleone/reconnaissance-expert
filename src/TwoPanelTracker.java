@@ -486,6 +486,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 	
 	private void addEntry (int answer) {
 		entries.add(new Entry(allTrials.get(counter - 1), answer, inCircleSteps * 1.0 / totalTimeSteps, startTime, counter, currentGazeDataSet, this.onTrackerChecks * 1.0 / this.totalTrackerChecks, this.toggles, new Tuple(this.getGCanvas().getLocationOnScreen()), inPracticeMode && counter <= TrackerConstants.TRACKER_ONLY_PRACTICE_COUNT, timeSpent));
+		entries.computeLastEntryRms(counter);
 	}
 	
 	private void addTarget () {
