@@ -48,13 +48,7 @@ public class Entry {
 	}
 	
 	public double getDetectionScore () {
-		for (int i = 0; i < TrackerConstants.RMS_THRESHOLDS.length; i++) {
-			if (rms < TrackerConstants.RMS_THRESHOLDS[i]) {
-				return 10 - i;
-			}
-		}
-		return 0;
-		/*if (earlyJoystick) return 0;
+		if (earlyJoystick) return 0;
 		double score = 0;
 		if (identifiedEnemy == t.containsEnemy) {
 			score += 2;
@@ -64,8 +58,14 @@ public class Entry {
 	}
 	
 	public double getTrackerScore () {
+		for (int i = 0; i < TrackerConstants.RMS_THRESHOLDS.length; i++) {
+			if (rms < TrackerConstants.RMS_THRESHOLDS[i]) {
+				return 10 - i;
+			}
+		}
+		return 0;
 		//return Math.min(Math.sqrt(1.0 * TrackerConstants.TARGET_SIZE / meanDistance), 1) * 10;
-		return meanDistance * 10; //mean distance is actually proportion that it is in the circle
+		//return meanDistance * 10; //mean distance is actually proportion that it is in the circle
 	}
 	
 	public double getScore () {
