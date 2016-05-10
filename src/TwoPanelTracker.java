@@ -486,7 +486,6 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 	
 	private void addEntry (int answer) {
 		entries.add(new Entry(allTrials.get(counter - 1), answer, inCircleSteps * 1.0 / totalTimeSteps, startTime, counter, currentGazeDataSet, this.onTrackerChecks * 1.0 / this.totalTrackerChecks, this.toggles, new Tuple(this.getGCanvas().getLocationOnScreen()), inPracticeMode && counter <= TrackerConstants.TRACKER_ONLY_PRACTICE_COUNT, timeSpent));
-		entries.computeLastEntryRms(counter);
 	}
 	
 	private void addTarget () {
@@ -803,7 +802,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 				"<tr><td>True state:</td><td>" + (last.t.containsEnemy ? "DANGER" : "CLEAR") + "</td></tr>" +
 				(isControlRun ? "" : "<tr><td>Recommendation:</td><td>" + getRecommendationString(last.t.color) + " - " + (((getRecommendationString(last.t.color) == "DANGER" || getRecommendationString(last.t.color) == "CAUTION") == last.t.containsEnemy) ? "<font color=green><b>CORRECT</b></font>" : "<font color=red><b>INCORRECT</b></font>") + "</td></tr>") +
 				"<tr><td>Your identification:</td><td>" + (last.outOfTime ? "ran out of time" : (last.identifiedEnemy ? "DANGER" : "CLEAR") + " - " + 
-				(last.identifiedEnemy == last.t.containsEnemy ? "<font color=green><b>CORRECT</b></font>" : "<font color=red><b>INCORRECT</b></font>.=")) + "</td></tr>" +
+				(last.identifiedEnemy == last.t.containsEnemy ? "<font color=green><b>CORRECT</b></font>" : "<font color=red><b>INCORRECT</b></font>")) + "</td></tr>" +
 				"<tr><td>Your detection score:</td><td>" + formatScore(entries.getDetectionScore(), false) + " <b>(" + formatScore(last.getDetectionScore(), true) + ")</b> </td></tr>") +
 				"<tr><td>Your tracker score:</td><td>" + formatScore(entries.getTrackerScore(), false) + " <b>(" + formatScore(last.getTrackerScore(), true) + ")</b> </td></tr>" +
 				"<tr><td>Total score:</td>" + formatScore(entries.getScore(), false) + " <b>(" + formatScore(last.getScore(), true) + ")</b></td></tr></table></font></html>"),

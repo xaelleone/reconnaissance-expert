@@ -8,8 +8,8 @@ public class TrackerConstants {
 	public static final double TRIAL_LENGTH_MS = 10000;
 	public static final int TRIAL_COUNT = 100; //edit this to change the number of trials
 	
-	public static final int EFFECTIVE_PRACTICE_TRIAL_COUNT = 1;
-	public static final int TRACKER_ONLY_PRACTICE_COUNT = 0;
+	public static final int EFFECTIVE_PRACTICE_TRIAL_COUNT = 8;
+	public static final int TRACKER_ONLY_PRACTICE_COUNT = 30;
 	
 	public static final int JOYSTICK_SENSITIVITY = 50;
 	

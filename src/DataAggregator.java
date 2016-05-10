@@ -69,6 +69,7 @@ public class DataAggregator {
 	public void add (Entry e) {
 		if (entryList.size() == 0 || entryList.get(entryList.size() - 1).trialNumber != e.trialNumber) {//take only first answer
 			entryList.add(e);
+			this.computeLastEntryRms(e.trialNumber);
 			if (!isPracticeRun) {
 				//printEyeOutput(e);
 				printDetectionOutput(e);
@@ -154,7 +155,7 @@ public class DataAggregator {
 			quadraticSum += Math.pow(trackerData.get(i).position.x, 2) + Math.pow(trackerData.get(i).position.y, 2);
 			count++;
 		}
-		this.entryList.get(this.entryList.size() - 1).rms = Math.sqrt(quadraticSum / count);
+		this.getMostRecentEntry().rms = Math.sqrt(quadraticSum / count);
 	}
 	
 	public void printDetectionOutput (Entry e) {
