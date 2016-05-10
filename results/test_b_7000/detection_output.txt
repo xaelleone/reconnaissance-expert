@@ -1,5 +1,0 @@
-2016-05-10 12:38:09.707
-1 2016-05-10 12:38:11.513 1807.0 false -1 CLEAR false false 2053.0 727.0 1.7947 10.0 0.0 0.8341968911917098 2 RR_19_absentflip.png HH_15_absentflip.png DD_18_absent.png EE_8_absentflip.png 
-2 2016-05-10 12:38:43.329 33623.0 true 3 CLEAR false false 3436.0 492.0 0.0 10.0 0.0 0.9226804123711341 2 II_3_absent.png DD_12_absent.png RR_5_absent.png TT_6_present.png 
-3 2016-05-10 12:40:14.507 124801.0 true 2 CLEAR false true 10000.0 -1.0 0.0 10.0 0.0 1.0 0 OO_12_absentflip.png TT_5_absent.png CC_14_present.png DD_4_absent.png 
-4 2016-05-10 12:40:32.514 142808.0 false -1 DANGER false false 2535.0 240.0 1.7465 10.0 0.0 0.9489795918367347 2 II_8_absentflip.png RR_14_absentflip.png NN_16_absentflip.png KK_10_absent.png 
