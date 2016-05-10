@@ -834,6 +834,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 			t.setVisible(true);
 		}
 		timer.setColor(Color.WHITE);
+		timer.sendToFront();
 	}
 	
 	public boolean isOnTrackerScreen () {
