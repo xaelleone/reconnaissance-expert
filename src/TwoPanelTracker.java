@@ -583,11 +583,11 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		if (!inPracticeMode && counter == TrackerConstants.TRIAL_COUNT) {
 			running = false;
 			entries.closeAll();
+			otherPracticeTip.setLabel("Score: " + formatScore(entries.getScore(), false) + "/" + 12 * (counter));
 			JOptionPane.showMessageDialog(this, "The experiment is over. Thank you for participating.",
 					"End of experiment",
 					JOptionPane.PLAIN_MESSAGE
 			);
-			otherPracticeTip.setLabel("Score: " + formatScore(entries.getScore(), false) + "/" + 12 * (counter));
 			this.exit();
 		}
 		if (counter % 50 == 0 && counter != 0) {
