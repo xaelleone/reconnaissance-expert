@@ -584,9 +584,10 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 			running = false;
 			entries.closeAll();
 			JOptionPane.showMessageDialog(this, "The experiment is over. Thank you for participating.",
-					"End of practice",
+					"End of experiment",
 					JOptionPane.PLAIN_MESSAGE
 			);
+			otherPracticeTip.setLabel("Score: " + formatScore(entries.getScore(), false) + "/" + 12 * (counter));
 			this.exit();
 		}
 		if (counter % 50 == 0 && counter != 0) {
@@ -618,7 +619,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		else {
 			trialNumber.setLabel("Trial: " + counter + "/" + TrackerConstants.TRIAL_COUNT);
 			otherPracticeTip.setLabel("Score: " + formatScore(entries.getScore(), false) + "/" + 12 * (counter - 1));
-			this.currentGazeDataSet = new ArrayList<EyeEntry>();
+			//this.currentGazeDataSet = new ArrayList<EyeEntry>();
 		} 
 	}
 	
@@ -710,7 +711,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 	private PollResult displayPoll (String[] message, ArrayList<Dictionary<Integer, JLabel>> labels) {
 		JFrame parent = new JFrame();
 		JOptionPane optionPane = new JOptionPane();
-		JSlider[] sliders = new JSlider[TrackerConstants.NUM_POLLS];
+		JSlider[] sliders = new JSlider[this.isControlRun ? 1 : TrackerConstants.NUM_POLLS]; // only one poll on control run
 		Object[] thingsOnOptionPane = new Object[TrackerConstants.NUM_POLLS * 2];
 		for (int i = 0; i < sliders.length; i++) {
 			sliders[i] = getSlider(optionPane, labels.get(i));
