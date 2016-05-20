@@ -3,7 +3,8 @@ import java.util.ArrayList;
 
 import com.theeyetribe.client.data.GazeData;
 
-public class Entry {
+//class for storing all the information about one trial and user information
+public class Entry { 
 	public Trial t;
 	public boolean identifiedEnemy;
 	public boolean outOfTime;
@@ -18,6 +19,7 @@ public class Entry {
 	public int toggleCount;
 	public double rms = 0;
 	
+	//constructor: function used to create a new instance of this class
 	public Entry (Trial tr, int a, double meanDist, double startTime, int counter, ArrayList<EyeEntry> gazeData, double trackerPercentage, int toggles, Tuple canvas, boolean noDetection, double spent) {
 		t = tr;
 		resolveAnswer (a);

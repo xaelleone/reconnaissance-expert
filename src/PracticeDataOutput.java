@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Timestamp;
 
+/*
+ * TODO: output scores
+ */
 public class PracticeDataOutput {
 	public DataAggregator entries;
 	

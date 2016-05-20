@@ -1,3 +1,5 @@
+
+//used to compute the next tracker location using joystick input
 public class Physics {
 	public static final double C_X = (1 + Math.sqrt(5)) / 2;
 	public static final double C_Y = Math.PI / 2;

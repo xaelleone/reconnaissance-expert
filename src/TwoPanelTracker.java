@@ -114,6 +114,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 		initScreen();
 	}
 	
+	//add all the elements to the screen
 	private void initMainScreen () {
 		this.removeAll();
 		entries = new DataAggregator(System.currentTimeMillis(), fileName, reliability, isBinaryAlarm, isControlRun, true);
@@ -897,7 +898,7 @@ public class TwoPanelTracker extends GraphicsProgram implements MouseMotionListe
 				loopTime = System.currentTimeMillis();
 				/*if (System.currentTimeMillis() % 1000 == 0)
 					seed = Math.random();*/
-				if (loopTime % 33 == 0/* && loopTime > startTime + 400*/) {
+				if (loopTime % 33 == 0/* && loopTime > startTime + 400*/) { //checking joystick inputs
 					joystick.poll();
 					if (!pressedButton) {
 						if (joystick.getComponents()[0].getPollData() > 0.5) { //trigger
