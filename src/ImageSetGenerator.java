@@ -11,6 +11,7 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Scanner;
 
+//class used to generate entire list of images
 public class ImageSetGenerator {
 	public static final String imageListFile = "";
 	public boolean isBinaryAlarm;

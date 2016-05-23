@@ -3,6 +3,7 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Collections;
 
+//contains all information about one trial
 public class Trial {
 	public static final int NUM_PICTURES = 4;
 	
